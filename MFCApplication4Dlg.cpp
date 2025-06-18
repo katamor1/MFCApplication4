@@ -33,7 +33,102 @@ void CMFCApplication4Dlg::DoDataExchange(CDataExchange* pDX)
 BEGIN_MESSAGE_MAP(CMFCApplication4Dlg, CDialogEx)
 	ON_WM_PAINT()
 	ON_WM_QUERYDRAGICON()
+	// カスタムメッセージとハンドラ関数をマッピング
+	ON_MESSAGE(WM_SHOW_VIEW2, &CMFCApplication4Dlg::OnShowView2)
+	ON_WM_SIZE()
 END_MESSAGE_MAP()
+
+// ワーカースレッドから通知を受けてView2を作成・表示する
+LRESULT CMFCApplication4Dlg::OnShowView2(WPARAM wParam, LPARAM lParam)
+{
+	// すでにView2が表示されていれば何もしない
+	if (m_pView2 && ::IsWindow(m_pView2->GetSafeHwnd()))
+	{
+		m_pView2->ShowWindow(SW_SHOW);
+		m_pView2->SetFocus();
+		return 0;
+	}
+
+	// View1 (プライマリビュー) のウィンドウ矩形を取得
+	CRect rectView1;
+	if (!m_pView1) return -1; // View1が見つからない場合はエラー
+
+	m_pView1->GetClientRect(&rectView1);
+	m_pView1->ClientToScreen(&rectView1); // スクリーン座標に変換
+	ScreenToClient(&rectView1);       // MainFrameのクライアント座標に変換
+
+	// View2をView1の右半分に重ねるための座標を計算
+	CRect rectView2;
+	rectView2.left = rectView1.left + rectView1.Width() / 2;
+	rectView2.top = rectView1.top;
+	rectView2.right = rectView1.right + rectView1.Width() / 2;
+	rectView2.bottom = rectView1.bottom;
+
+	// View2が未作成なら作成する
+	if (m_pView2 == nullptr)
+	{
+		m_pView2 = new CView2();
+		CCreateContext context;
+		m_pView2->Create(NULL, _T("View2"), WS_CHILD | WS_VISIBLE | WS_BORDER, rectView2, this, AFX_IDW_PANE_FIRST + 1, &context);
+	}
+
+	// View2を正しい位置に表示し、最前面に持ってくる
+	m_pView2->SetWindowPos(m_pView1, rectView2.left, rectView2.top, rectView2.Width(), rectView2.Height(), SWP_SHOWWINDOW);
+	m_pView2->Invalidate();
+
+	// ★★★ View2を表示した直後にクリッピングを適用 ★★★
+	UpdateLayoutAndClipping();
+
+	return 0;
+}
+
+// ★★★ CMainFrame::OnSizeハンドラの実装を追加 ★★★
+void CMFCApplication4Dlg::OnSize(UINT nType, int cx, int cy)
+{
+	CDialogEx::OnSize(nType, cx, cy);
+
+	// メインウィンドウのサイズが変更されたら、
+	// レイアウトとクリッピングを再計算する
+	if (m_pView2 && ::IsWindow(m_pView2->GetSafeHwnd()))
+	{
+		// ここでCView1やCView2のサイズや位置を調整するコードがあれば、それを実行した後に...
+		UpdateLayoutAndClipping();
+	}
+}
+// ★★★ UpdateLayoutAndClipping関数の実装を追加 ★★★
+void CMFCApplication4Dlg::UpdateLayoutAndClipping()
+{
+	if (!m_pView1 || !::IsWindow(m_pView1->GetSafeHwnd())) return;
+	if (!m_pView2 || !::IsWindow(m_pView2->GetSafeHwnd())) return;
+
+	// 1. 各ビューのクライアント領域をスクリーン座標で取得
+	CRect rectView1Screen, rectView2Screen;
+	m_pView1->GetWindowRect(&rectView1Screen);
+	m_pView2->GetWindowRect(&rectView2Screen);
+
+	// 2. CView2の全体リージョンを作成 (CView2のローカル座標系)
+	CRect rectView2Client;
+	m_pView2->GetClientRect(&rectView2Client);
+	CRgn rgnView2;
+	rgnView2.CreateRectRgnIndirect(&rectView2Client);
+
+	// 3. CView1の領域をCView2のクライアント座標系に変換
+	//    (スクリーン座標からCView2のクライアント座標へ)
+	CRect rectView1inView2 = rectView1Screen;
+	m_pView2->ScreenToClient(&rectView1inView2);
+
+	// 4. 変換したCView1の領域でリージョンを作成
+	CRgn rgnClip;
+	rgnClip.CreateRectRgnIndirect(&rectView1inView2);
+
+	// 5. CView2のリージョンからCView1のリージョンを「差し引く」(RGN_DIFF)
+	//    これにより、重なっている部分が「穴」になる
+	rgnView2.CombineRgn(&rgnView2, &rgnClip, RGN_DIFF);
+
+	// 6. 計算した新しいリージョンをCView2に設定する
+	//    Detach()でリージョンの所有権をウィンドウに渡し、自動解放させる
+	m_pView2->SetWindowRgn((HRGN)rgnView2.Detach(), TRUE);
+}
 
 
 // CMFCApplication4Dlg メッセージ ハンドラー
@@ -67,6 +162,15 @@ BOOL CMFCApplication4Dlg::OnInitDialog()
 	m_editCustom2->SetWindowPos(nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	// TODO: 初期化をここに追加します。
 
+	CRect rectView1(450, 50, 600, 200); // ダイアログ内の位置とサイズを指定
+	m_pView1 = new CView1();
+	CCreateContext context;
+	m_pView1->Create(NULL, _T("View2"), WS_CHILD | WS_VISIBLE | WS_BORDER, rectView1, this, AFX_IDW_PANE_FIRST + 1, &context);
+	m_pView1->ShowWindow(SW_SHOW);
+
+	// View2を正しい位置に表示し、最前面に持ってくる
+	m_pView1->SetWindowPos(&wndTop, rectView1.left, rectView1.top, rectView1.Width(), rectView1.Height(), SWP_SHOWWINDOW);
+	m_pView1->Invalidate();
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
