@@ -171,6 +171,15 @@ BOOL CMFCApplication4Dlg::OnInitDialog()
 	// View2を正しい位置に表示し、最前面に持ってくる
 	m_pView1->SetWindowPos(&wndTop, rectView1.left, rectView1.top, rectView1.Width(), rectView1.Height(), SWP_SHOWWINDOW);
 	m_pView1->Invalidate();
+
+	
+	m_editCustom3 = new CMyEdit();
+	CRect rect3(250, 250, 400, 300); // ダイアログ内の位置とサイズを指定
+	m_editCustom3->Create(WS_CHILD | WS_VISIBLE, rect3, this, 1010);
+	m_editCustom3->ShowWindow(TRUE);
+	m_editCustom3->SetWindowTextW(_T("AAAA")); // 初期値を設定
+	m_editCustom3->SetFont(GetFont()); // フォントをダイアログのフォントに設定
+
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 

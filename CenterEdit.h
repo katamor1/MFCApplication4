@@ -24,6 +24,7 @@ protected:
 	COLORREF m_colorTextFocus;   // フォーカス時の文字色
 	COLORREF m_colorTextNoFocus; // 非フォーカス時の文字色
 	bool m_bIsFirstTimeInit = true;
+	CString m_strOriginalText;
 	// 実装
 protected:
 	void UpdateTextPosition(); // テキストの垂直位置を更新するヘルパー関数

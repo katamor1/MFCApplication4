@@ -1,5 +1,6 @@
 ﻿#include "pch.h"
 #include "CenterEdit.h"
+#include "SoftwareKeyboardDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -62,6 +63,27 @@ BOOL CCenterEdit::PreTranslateMessage(MSG* pMsg)
 void CCenterEdit::OnSetFocus(CWnd* pOldWnd)
 {
 	CEdit::OnSetFocus(pOldWnd);
+
+	// 1. 現在のテキストを保存
+	GetWindowText(m_strOriginalText);
+
+	// 2. ソフトウェアキーボードをモーダルで表示
+	//    コンストラクタに自身(this)を渡し、どのエディットへの入力か伝える
+	CSoftwareKeyboardDlg dlg(this);
+	INT_PTR nResponse = dlg.DoModal();
+
+	// 3. IDCANCELで閉じられた場合、テキストを元に戻す
+	if (nResponse == IDCANCEL)
+	{
+		SetWindowText(m_strOriginalText);
+	}
+
+	// 4. キーボードが閉じたら、親ウィンドウにフォーカスを戻す
+	//    これにより、エディットコントロールからフォーカスが外れる
+	if (GetParent())
+	{
+		GetParent()->SetFocus();
+	}
 	Invalidate(); // 再描画を促す
 }
 

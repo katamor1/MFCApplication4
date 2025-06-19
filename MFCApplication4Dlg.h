@@ -6,6 +6,7 @@
 #include "CenterEdit.h"
 #include "View1.h"
 #include "CView2.h"
+#include "CMyEdit.h"
 
 // ワーカースレッドからView2の表示をトリガーするためのカスタムメッセージ
 #define WM_SHOW_VIEW2 (WM_APP + 2)
@@ -28,6 +29,7 @@ public:
 	CCenterEdit* m_editCustom2 = nullptr;
 	CView1* m_pView1 = nullptr; // View1へのポインタ
 	CView2* m_pView2 = nullptr; // View2へのポインタ
+	CMyEdit* m_editCustom3 = nullptr;
 
 // 実装
 protected:
