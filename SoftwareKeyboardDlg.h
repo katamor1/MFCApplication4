@@ -23,8 +23,13 @@ public:
     // 状態取得用public関数
     bool IsShiftOn() const { return m_bShiftOn; }
     bool IsCapsLockOn() const { return m_bCapsLockOn; }
-    bool IsCtrlOn(BYTE vk) const { return (vk == VK_LCONTROL && m_bLCtrlOn) || (vk == VK_RCONTROL && m_bRCtrlOn); }
-    bool IsAltOn(BYTE vk) const { return (vk == VK_LMENU && m_bLAltOn) || (vk == VK_RMENU && m_bRAltOn); }
+
+    // --- 修正箇所：ここから ---
+    // bool IsCtrlOn(BYTE vk) const { return (vk == VK_LCONTROL && m_bLCtrlOn) || (vk == VK_RCONTROL && m_bRCtrlOn); }
+    // bool IsAltOn(BYTE vk) const { return (vk == VK_LMENU && m_bLAltOn) || (vk == VK_RMENU && m_bRAltOn); }
+    bool IsCtrlOn() const { return m_bCtrlOn; } // 引数をなくし、単一のフラグを返す
+    bool IsAltOn() const { return m_bAltOn; }   // 引数をなくし、単一のフラグを返す
+    // --- 修正箇所：ここまで ---
     bool IsFnOn() const { return m_bFnOn; }
 
 protected:
@@ -37,13 +42,17 @@ protected:
     CEdit* m_pTargetEdit; // 入力対象のエディット
     std::vector<CKeyButton*> m_KeyButtons;
 
+    // --- 修正箇所：ここから ---
     // 状態保持キーのフラグ
     bool m_bShiftOn;
     bool m_bCapsLockOn;
-    bool m_bLCtrlOn, m_bRCtrlOn;
-    bool m_bLAltOn, m_bRAltOn;
+    // bool m_bLCtrlOn, m_bRCtrlOn;
+    // bool m_bLAltOn, m_bRAltOn;
+    bool m_bCtrlOn; // 左右の区別をなくす
+    bool m_bAltOn;  // 左右の区別をなくす
     bool m_bFnOn;
-
+    // --- 修正箇所：ここまで ---
+    
     // ダイアログ移動用
     bool m_bDragging;
     CPoint m_ptMouseOffset;

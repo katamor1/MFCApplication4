@@ -23,8 +23,12 @@ CSoftwareKeyboardDlg::CSoftwareKeyboardDlg(CEdit* pTargetEdit, CWnd* pParent /*=
       m_pTargetEdit(pTargetEdit),
       m_bShiftOn(false),
       m_bCapsLockOn(false),
-      m_bLCtrlOn(false), m_bRCtrlOn(false),
-      m_bLAltOn(false), m_bRAltOn(false),
+            // --- 修正箇所：ここから ---
+      // m_bLCtrlOn(false), m_bRCtrlOn(false),
+      // m_bLAltOn(false), m_bRAltOn(false),
+      m_bCtrlOn(false),
+      m_bAltOn(false),
+      // --- 修正箇所：ここまで ---
       m_bFnOn(false),
       m_bDragging(false)
 {
@@ -284,10 +288,25 @@ void CSoftwareKeyboardDlg::HandleKeyPress(const KEY_INFO* pKeyInfo)
         case VK_CAPITAL: m_bCapsLockOn = !m_bCapsLockOn; break;
         case VK_LSHIFT:
         case VK_RSHIFT:  m_bShiftOn = !m_bShiftOn; break;
-        case VK_LCONTROL:m_bLCtrlOn = !m_bLCtrlOn; m_bRCtrlOn = false; break;
-        case VK_RCONTROL:m_bRCtrlOn = !m_bRCtrlOn; m_bLCtrlOn = false; break;
-        case VK_LMENU:   m_bLAltOn = !m_bLAltOn; m_bRAltOn = false; break;
-        case VK_RMENU:   m_bRAltOn = !m_bRAltOn; m_bLAltOn = false; break;
+
+        // --- 修正箇所：ここから ---
+        // case VK_LCONTROL:m_bLCtrlOn = !m_bLCtrlOn; m_bRCtrlOn = false; break;
+        // case VK_RCONTROL:m_bRCtrlOn = !m_bRCtrlOn; m_bLCtrlOn = false; break;
+        // case VK_LMENU:   m_bLAltOn = !m_bLAltOn; m_bRAltOn = false; break;
+        // case VK_RMENU:   m_bRAltOn = !m_bRAltOn; m_bLAltOn = false; break;
+        
+        // 左右どちらのCtrlでも、単一のm_bCtrlOnをトグルする
+        case VK_LCONTROL:
+        case VK_RCONTROL: 
+            m_bCtrlOn = !m_bCtrlOn; 
+            break;
+        
+        // 左右どちらのAltでも、単一のm_bAltOnをトグルする
+        case VK_LMENU:
+        case VK_RMENU:    
+            m_bAltOn = !m_bAltOn; 
+            break;
+        // --- 修正箇所：ここまで ---
         default:         if (wcscmp(pKeyInfo->szLabel, L"Fn") == 0) m_bFnOn = !m_bFnOn; break;
         }
         UpdateAllKeys();
@@ -304,12 +323,27 @@ void CSoftwareKeyboardDlg::SendChar(TCHAR ch)
     // ここでは対象コントロールへ直接メッセージを送る
     m_pTargetEdit->SendMessage(WM_CHAR, (WPARAM)ch, 1);
 }
-
 // 特殊キーを送信
 void CSoftwareKeyboardDlg::SendKey(BYTE vk)
 {
-    m_pTargetEdit->SendMessage(WM_KEYDOWN, (WPARAM)vk, 0);
-    // WM_KEYUPも送るべきだが、CEditはKEYDOWNだけで処理することが多い
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ★                                                   ★
+    // ★             ↓↓↓ ここから修正 ↓↓↓             ★
+    // ★                                                   ★
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+
+    // Backspace (VK_BACK) は、文字入力の制御文字としてWM_CHARで送信すると、
+    // CEditコントロールでより確実に処理されます。
+    // 同様に、TabやSpaceもWM_CHARで送信するのが適切です。
+    // 一方、Delete (VK_DELETE) のような非文字キーはWM_KEYDOWNで処理されます。
+    if (vk == VK_BACK || vk == VK_TAB || vk == VK_SPACE)
+    {
+        m_pTargetEdit->SendMessage(WM_CHAR, (WPARAM)vk, 1);
+    }
+    else // VK_DELETE など、その他のアクションキー
+    {
+        m_pTargetEdit->SendMessage(WM_KEYDOWN, (WPARAM)vk, 0);
+    }
 }
 
 // 全キーの再描画を要求

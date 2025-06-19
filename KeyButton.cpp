@@ -39,8 +39,12 @@ void CKeyButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     // 親ダイアログから現在の状態を取得
     bool bShiftOn = m_pParentDlg->IsShiftOn();
     bool bCapsLockOn = m_pParentDlg->IsCapsLockOn();
-    bool bCtrlOn = m_pParentDlg->IsCtrlOn(m_pKeyInfo->bVirtKey);
-    bool bAltOn = m_pParentDlg->IsAltOn(m_pKeyInfo->bVirtKey);
+    // --- 修正箇所：ここから ---
+    // bool bCtrlOn = m_pParentDlg->IsCtrlOn(m_pKeyInfo->bVirtKey);
+    // bool bAltOn = m_pParentDlg->IsAltOn(m_pKeyInfo->bVirtKey);
+    bool bCtrlOn = m_pParentDlg->IsCtrlOn(); // 引数を削除
+    bool bAltOn = m_pParentDlg->IsAltOn();   // 引数を削除
+    // --- 修正箇所：ここまで ---
     bool bFnOn = m_pParentDlg->IsFnOn();
 
     bool bIsOn = false; // このキーがON状態か
