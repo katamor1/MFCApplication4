@@ -1,4 +1,4 @@
-// MyEdit.h
+﻿// MyEdit.h
 #pragma once
 
 class CMyEdit : public CEdit

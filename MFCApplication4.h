@@ -10,6 +10,7 @@
 
 #include "resource.h"		// メイン シンボル
 
+#define WM_APP_SHOW_OPERATION_STATUS (WM_APP + 3)
 
 // CMFCApplication4App:
 // このクラスの実装については、MFCApplication4.cpp を参照してください
@@ -23,6 +24,7 @@ public:
 // オーバーライド
 public:
 	virtual BOOL InitInstance();
+	virtual BOOL PreTranslateMessage(MSG* pMsg);
 
 // 実装
 

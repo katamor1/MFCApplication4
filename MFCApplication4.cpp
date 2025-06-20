@@ -90,3 +90,73 @@ BOOL CMFCApplication4App::InitInstance()
 	return FALSE;
 }
 
+
+// アプリケーション全体で不要な操作をフィルタリングする
+BOOL CMFCApplication4App::PreTranslateMessage(MSG* pMsg)
+{
+    // マウスクリック関連のメッセージ（クライアント領域・非クライアント領域）を検出
+    if ((pMsg->message >= WM_LBUTTONDOWN && pMsg->message <= WM_MBUTTONDBLCLK) ||
+        (pMsg->message >= WM_NCLBUTTONDOWN && pMsg->message <= WM_NCMBUTTONDBLCLK))
+    {
+        // ボタンが押された瞬間のメッセージのみを対象とする
+        if (pMsg->message == WM_LBUTTONDOWN || pMsg->message == WM_RBUTTONDOWN || pMsg->message == WM_MBUTTONDOWN ||
+            pMsg->message == WM_NCLBUTTONDOWN || pMsg->message == WM_NCRBUTTONDOWN || pMsg->message == WM_NCMBUTTONDOWN)
+        {
+            // メインウィンドウに通知メッセージを送信
+            if (m_pMainWnd && m_pMainWnd->GetSafeHwnd())
+            {
+                m_pMainWnd->PostMessage(WM_APP_SHOW_OPERATION_STATUS, 0, 0);
+            }
+        }
+    }
+
+	// --- 1. Alt+F4 と Alt+Space の無効化 ---
+	// WM_SYSKEYDOWNは、Altキーが押されている状態で他のキーが押された場合に発生します
+	if (pMsg->message == WM_SYSKEYDOWN)
+	{
+		// pMsg->wParam には押されたキーの仮想キーコードが入ります
+		if (pMsg->wParam == VK_F4)
+		{
+			// Alt+F4 が押されたら、メッセージを処理済みとして扱う（ディスパッチしない）
+			return TRUE;
+		}
+		if (pMsg->wParam == VK_SPACE)
+		{
+			// Alt+Space が押されたら、メッセージを処理済みとして扱う
+			return TRUE;
+		}
+	}
+
+	// --- 2. ダブルクリックの無効化 ---
+	// ダブルクリック関連のメッセージをまとめてチェックします
+	if (pMsg->message >= WM_LBUTTONDBLCLK && pMsg->message <= WM_MBUTTONDBLCLK)
+	{
+		// ダブルクリックメッセージを無視します
+		return TRUE;
+	}
+
+	// --- 3. 右クリックの無効化 ---
+	// 右クリック関連のメッセージをまとめてチェックします
+	if (pMsg->message == WM_RBUTTONDOWN ||
+		pMsg->message == WM_RBUTTONUP ||
+		pMsg->message == WM_CONTEXTMENU)
+	{
+		// 右クリック関連のメッセージを無視します
+		return TRUE;
+	}
+
+	// --- 4. タッチジェスチャの無効化 ---
+	// WM_GESTUREの定義がない古いSDKの場合に備えて定義します
+#ifndef WM_GESTURE
+#define WM_GESTURE 0x0119
+#endif
+
+	if (pMsg->message == WM_GESTURE)
+	{
+		// ズーム、回転、フリックなどのジェスチャメッセージを無視します
+		return TRUE;
+	}
+
+	// 上記のいずれにも該当しない場合は、通常のメッセージ処理を続行する
+	return CWinApp::PreTranslateMessage(pMsg);
+}

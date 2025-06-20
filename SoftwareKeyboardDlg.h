@@ -1,4 +1,4 @@
-// SoftwareKeyboardDlg.h
+﻿// SoftwareKeyboardDlg.h
 #pragma once
 
 #include "KeyDefine.h"

@@ -1,4 +1,4 @@
-// SoftwareKeyboardDlg.cpp
+﻿// SoftwareKeyboardDlg.cpp
 #include "pch.h" // or stdafx.h
 #include "SoftwareKeyboardDlg.h"
 #include "CenterEdit.h"

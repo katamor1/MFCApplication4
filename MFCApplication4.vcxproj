@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|Win32">
@@ -184,9 +184,13 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="CenterEdit.h" />
+    <ClInclude Include="CMyDialog.h" />
+    <ClInclude Include="CMyDialog2.h" />
     <ClInclude Include="CMyEdit.h" />
     <ClInclude Include="CView2.h" />
     <ClInclude Include="framework.h" />
+    <ClInclude Include="GridCtrl.h" />
+    <ClInclude Include="InPlaceEdit.h" />
     <ClInclude Include="KeyButton.h" />
     <ClInclude Include="KeyDefine.h" />
     <ClInclude Include="MFCApplication4.h" />
@@ -199,8 +203,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CenterEdit.cpp" />
+    <ClCompile Include="CMyDialog.cpp" />
+    <ClCompile Include="CMyDialog2.cpp" />
     <ClCompile Include="CMyEdit.cpp" />
     <ClCompile Include="CView2.cpp" />
+    <ClCompile Include="GridCtrl.cpp" />
+    <ClCompile Include="InPlaceEdit.cpp" />
     <ClCompile Include="KeyButton.cpp" />
     <ClCompile Include="MFCApplication4.cpp" />
     <ClCompile Include="MFCApplication4Dlg.cpp" />

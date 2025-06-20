@@ -1,9 +1,2 @@
-﻿  SoftwareKeyboardDlg.cpp
-C:\Users\stell\source\repos\MFCApplication4\MFCApplication4\SoftwareKeyboardDlg.cpp(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-C:\Users\stell\source\repos\MFCApplication4\MFCApplication4\SoftwareKeyboardDlg.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル '/SoftwareKeyboardDlg.cpp' をコンパイルしています)
-  
-C:\Users\stell\source\repos\MFCApplication4\MFCApplication4\KeyDefine.h(1,1): warning C4819: ファイルは、現在のコード ページ (932) で表示できない文字を含んでいます。データの損失を防ぐために、ファイルを Unicode 形式で保存してください。
-  (ソース ファイル '/SoftwareKeyboardDlg.cpp' をコンパイルしています)
-  
+﻿  MFCApplication4Dlg.cpp
   MFCApplication4.vcxproj -> C:\Users\stell\source\repos\MFCApplication4\x64\Debug\MFCApplication4.exe

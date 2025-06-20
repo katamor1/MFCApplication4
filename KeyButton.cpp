@@ -1,4 +1,4 @@
-// KeyButton.cpp
+﻿// KeyButton.cpp
 #include "pch.h" // or stdafx.h
 #include "KeyButton.h"
 #include "SoftwareKeyboardDlg.h"

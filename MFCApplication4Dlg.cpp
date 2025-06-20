@@ -8,6 +8,8 @@
 #include "MFCApplication4Dlg.h"
 #include "afxdialogex.h"
 #include "CenterEdit.h"
+#include "CMyDialog.h"
+#include "CMyDialog2.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -36,6 +38,11 @@ BEGIN_MESSAGE_MAP(CMFCApplication4Dlg, CDialogEx)
 	// カスタムメッセージとハンドラ関数をマッピング
 	ON_MESSAGE(WM_SHOW_VIEW2, &CMFCApplication4Dlg::OnShowView2)
 	ON_WM_SIZE()
+	ON_BN_CLICKED(IDC_BUTTON1, &CMFCApplication4Dlg::OnBnClickedButton1)
+	ON_WM_SYSCOMMAND()
+	ON_BN_CLICKED(IDC_BUTTON2, &CMFCApplication4Dlg::OnBnClickedButton2)
+    ON_WM_TIMER()
+    ON_MESSAGE(WM_APP_SHOW_OPERATION_STATUS, &CMFCApplication4Dlg::OnShowOperationStatus)
 END_MESSAGE_MAP()
 
 // ワーカースレッドから通知を受けてView2を作成・表示する
@@ -180,9 +187,51 @@ BOOL CMFCApplication4Dlg::OnInitDialog()
 	m_editCustom3->SetWindowTextW(_T("AAAA")); // 初期値を設定
 	m_editCustom3->SetFont(GetFont()); // フォントをダイアログのフォントに設定
 
+    // --- ▼▼▼ この行を追加 ▼▼▼ ---
+    // ダイアログの初期タイトルを保存
+    GetWindowText(m_strOriginalTitle);
+    // --- ▲▲▲ 追加 ▲▲▲ ---
 	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
+
+// アプリケーションクラスから通知メッセージを受け取るハンドラ
+LRESULT CMFCApplication4Dlg::OnShowOperationStatus(WPARAM wParam, LPARAM lParam)
+{
+    // 現在のタイトルを取得
+    CString strCurrentTitle;
+    GetWindowText(strCurrentTitle);
+
+    // もしタイトルがまだ「操作中」でなければ、現在のタイトルをオリジナルとして保存更新
+    if (strCurrentTitle != _T("操作中"))
+    {
+        m_strOriginalTitle = strCurrentTitle;
+    }
+
+    // タイトルを「操作中」に変更
+    SetWindowText(_T("操作中"));
+
+    // 3秒タイマーを開始（またはリセット）する
+    SetTimer(ID_TITLE_TIMER, 3000, NULL);
+
+    return 0;
+}
+
+// タイマーイベントを処理するハンドラ
+void CMFCApplication4Dlg::OnTimer(UINT_PTR nIDEvent)
+{
+    // 今回設定したタイマーかどうかをIDで確認
+    if (nIDEvent == ID_TITLE_TIMER)
+    {
+        // タイマーを停止（一回限りのタイマーのため）
+        KillTimer(ID_TITLE_TIMER);
+        
+        // タイトルを保存しておいた元の文字列に戻す
+        SetWindowText(m_strOriginalTitle);
+    }
+
+    CDialogEx::OnTimer(nIDEvent);
+}
 // ダイアログに最小化ボタンを追加する場合、アイコンを描画するための
 //  下のコードが必要です。ドキュメント/ビュー モデルを使う MFC アプリケーションの場合、
 //  これは、Framework によって自動的に設定されます。
@@ -219,3 +268,30 @@ HCURSOR CMFCApplication4Dlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+
+void CMFCApplication4Dlg::OnBnClickedButton1()
+{
+	CMyDialog dlg;
+	dlg.DoModal(); // モーダルダイアログとして表示
+}
+
+void CMFCApplication4Dlg::OnSysCommand(UINT nID, LPARAM lParam)
+{
+	// nIDの下位4ビットはシステムが使用するため、0xFFF0でマスクして比較します
+	if ((nID & 0xFFF0) == SC_CLOSE)
+	{
+		// SC_CLOSE コマンドを検知した場合、何もしないで関数を抜けます。
+		// これにより、Alt+F4、タイトルバーの「×」ボタン、タスクバーからの
+		// 「閉じる」操作がすべて無効化されます。
+		return;
+	}
+
+	// SC_CLOSE 以外のシステムコマンド（例: 最小化、最大化など）は、
+	// デフォルトの処理に任せます。
+	CDialogEx::OnSysCommand(nID, lParam);
+}
+void CMFCApplication4Dlg::OnBnClickedButton2()
+{
+	CMyDialog2 dlg;
+	dlg.DoModal(); // モーダルダイアログとして表示
+}
