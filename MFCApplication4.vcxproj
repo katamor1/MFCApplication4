@@ -186,6 +186,7 @@
     <ClInclude Include="CenterEdit.h" />
     <ClInclude Include="CMyDialog.h" />
     <ClInclude Include="CMyDialog2.h" />
+    <ClInclude Include="CMyDialog3.h" />
     <ClInclude Include="CMyEdit.h" />
     <ClInclude Include="CView2.h" />
     <ClInclude Include="framework.h" />
@@ -205,6 +206,7 @@
     <ClCompile Include="CenterEdit.cpp" />
     <ClCompile Include="CMyDialog.cpp" />
     <ClCompile Include="CMyDialog2.cpp" />
+    <ClCompile Include="CMyDialog3.cpp" />
     <ClCompile Include="CMyEdit.cpp" />
     <ClCompile Include="CView2.cpp" />
     <ClCompile Include="GridCtrl.cpp" />

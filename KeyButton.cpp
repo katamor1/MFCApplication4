@@ -11,7 +11,6 @@ const COLORREF CLR_TEXT_BLACK = RGB(0, 0, 0);
 const COLORREF CLR_TEXT_WHITE = RGB(255, 255, 255);
 const COLORREF CLR_TEXT_GRAY = RGB(128, 128, 128);
 
-
 IMPLEMENT_DYNAMIC(CKeyButton, CButton)
 
 CKeyButton::CKeyButton() : m_pKeyInfo(nullptr), m_pParentDlg(nullptr)
@@ -22,7 +21,7 @@ CKeyButton::~CKeyButton()
 {
 }
 
-void CKeyButton::SetKeyInfo(CSoftwareKeyboardDlg* pParent, const KEY_INFO* pKeyInfo)
+void CKeyButton::SetKeyInfo(CSoftwareKeyboardDlg *pParent, const KEY_INFO *pKeyInfo)
 {
     m_pParentDlg = pParent;
     m_pKeyInfo = pKeyInfo;
@@ -31,20 +30,17 @@ void CKeyButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 {
     ASSERT(m_pKeyInfo != nullptr);
     ASSERT(m_pParentDlg != nullptr);
-    if (m_pKeyInfo == nullptr || m_pParentDlg == nullptr) return;
+    if (m_pKeyInfo == nullptr || m_pParentDlg == nullptr)
+        return;
 
-    CDC* pDC = CDC::FromHandle(lpDrawItemStruct->hDC);
+    CDC *pDC = CDC::FromHandle(lpDrawItemStruct->hDC);
     CRect rect = lpDrawItemStruct->rcItem;
 
     // 親ダイアログから現在の状態を取得
     bool bShiftOn = m_pParentDlg->IsShiftOn();
     bool bCapsLockOn = m_pParentDlg->IsCapsLockOn();
-    // --- 修正箇所：ここから ---
-    // bool bCtrlOn = m_pParentDlg->IsCtrlOn(m_pKeyInfo->bVirtKey);
-    // bool bAltOn = m_pParentDlg->IsAltOn(m_pKeyInfo->bVirtKey);
     bool bCtrlOn = m_pParentDlg->IsCtrlOn(); // 引数を削除
     bool bAltOn = m_pParentDlg->IsAltOn();   // 引数を削除
-    // --- 修正箇所：ここまで ---
     bool bFnOn = m_pParentDlg->IsFnOn();
 
     bool bIsOn = false; // このキーがON状態か
@@ -52,14 +48,24 @@ void CKeyButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     {
         switch (m_pKeyInfo->bVirtKey)
         {
-        case VK_CAPITAL: bIsOn = bCapsLockOn; break;
+        case VK_CAPITAL:
+            bIsOn = bCapsLockOn;
+            break;
         case VK_LSHIFT:
-        case VK_RSHIFT:  bIsOn = bShiftOn; break;
+        case VK_RSHIFT:
+            bIsOn = bShiftOn;
+            break;
         case VK_LCONTROL:
-        case VK_RCONTROL:bIsOn = bCtrlOn; break;
+        case VK_RCONTROL:
+            bIsOn = bCtrlOn;
+            break;
         case VK_LMENU:
-        case VK_RMENU:   bIsOn = bAltOn; break;
-        default:         bIsOn = (m_pKeyInfo->szLabel == CString(L"Fn")) ? bFnOn : false; break;
+        case VK_RMENU:
+            bIsOn = bAltOn;
+            break;
+        default:
+            bIsOn = (m_pKeyInfo->szLabel == CString(_T("Fn"))) ? bFnOn : false;
+            break;
         }
     }
 
@@ -77,7 +83,7 @@ void CKeyButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
 
     // 2. 枠線の描画
     CPen penBorder(PS_SOLID, 1, CLR_KEY_BORDER);
-    CPen* pOldPen = pDC->SelectObject(&penBorder);
+    CPen *pOldPen = pDC->SelectObject(&penBorder);
     pDC->MoveTo(rect.left, rect.bottom - 1);
     pDC->LineTo(rect.left, rect.top);
     pDC->LineTo(rect.right - 1, rect.top);
@@ -90,7 +96,7 @@ void CKeyButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
     COLORREF clrText = bIsOn ? CLR_TEXT_WHITE : CLR_TEXT_BLACK;
     pDC->SetTextColor(clrText);
 
-    CFont* pOldFont = pDC->SelectObject(GetParent()->GetFont());
+    CFont *pOldFont = pDC->SelectObject(GetParent()->GetFont());
 
     // ラベルの文字列を決定
     CString strLabel = m_pKeyInfo->szLabel;
@@ -109,12 +115,6 @@ void CKeyButton::DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct)
         strLabel = strShiftLabel;
         strShiftLabel.Empty(); // 右下の文字は描画しない
     }
-
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★                                                   ★
-    // ★             ↓↓↓ ここから修正 ↓↓↓             ★
-    // ★                                                   ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
     // メインラベルを描画
     UINT uFormat = DT_CENTER | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX; // DT_NOPREFIX を追加

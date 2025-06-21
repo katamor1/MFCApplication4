@@ -54,10 +54,10 @@ BEGIN
     "\r\n"
     "#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)\r\n"
     "LANGUAGE 17, 1\r\n"
-    "#include ""res\\MFCApplication4.rc2""  // Microsoft Visual C++ 以外で編集されたリソース\r\n"
-    "#include ""l.JPN\\afxres.rc""      // 標準コンポーネント\r\n"
+    "#include ""res\\MFCApplication4.rc2""  // Microsoft Visual C++ 闔会ｽ･陞滓じ縲帝こ・ｨ鬮ｮ繝ｻ・・ｹｧ蠕娯螺郢晢ｽｪ郢ｧ・ｽ郢晢ｽｼ郢ｧ・ｹ\r\n"
+    "#include ""l.JPN\\afxres.rc""      // 隶灘綜・ｺ謔ｶ縺慕ｹ晢ｽｳ郢晄亢繝ｻ郢晞亂ﾎｦ郢昴・\n"
     "#if !defined(_AFXDLL)\r\n"
-    "#include  ""l.JPN\\afxribbon.rc""   // MFC リボンおよびコントロール バー リソース\r\n"
+    "#include  ""l.JPN\\afxribbon.rc""   // MFC 郢晢ｽｪ郢晄㈱ﾎｦ邵ｺ鄙ｫ・育ｸｺ・ｳ郢ｧ・ｳ郢晢ｽｳ郢晏現ﾎ溽ｹ晢ｽｼ郢晢ｽｫ 郢晁・繝ｻ 郢晢ｽｪ郢ｧ・ｽ郢晢ｽｼ郢ｧ・ｹ\r\n"
     "#endif\r\n"
     "#endif\r\n"
     "\0"
@@ -89,6 +89,7 @@ BEGIN
     PUSHBUTTON      "Button1",IDC_BUTTON1,18,360,50,14
     DEFPUSHBUTTON   "OK",IDOK,402,360,43,15
     PUSHBUTTON      "Button2",IDC_BUTTON2,90,360,50,14
+    PUSHBUTTON      "Button3",IDC_BUTTON3,162,360,50,14
 END
 
 IDD_SW_KEYBOARD DIALOGEX 0, 0, 626, 296
@@ -106,6 +107,13 @@ END
 
 IDD_CMyDialog2 DIALOGEX 0, 0, 426, 270
 STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_VSCROLL | WS_SYSMENU
+CAPTION "ダイアログ"
+FONT 9, "MS UI Gothic", 0, 0, 0x0
+BEGIN
+END
+
+IDD_MyDialog3 DIALOGEX 0, 0, 552, 312
+STYLE DS_SETFONT | DS_MODALFRAME | WS_POPUP | WS_CAPTION | WS_SYSMENU
 CAPTION "ダイアログ"
 FONT 9, "MS UI Gothic", 0, 0, 0x0
 BEGIN
@@ -190,6 +198,14 @@ BEGIN
         TOPMARGIN, 7
         BOTTOMMARGIN, 263
     END
+
+    IDD_MyDialog3, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 545
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 305
+    END
 END
 #endif    // APSTUDIO_INVOKED
 
@@ -219,6 +235,11 @@ BEGIN
     0
 END
 
+IDD_MyDialog3 AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 #endif    // 日本語 (日本) resources
 /////////////////////////////////////////////////////////////////////////////
 
@@ -236,10 +257,10 @@ END
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
 LANGUAGE 17, 1
-#include "res\MFCApplication4.rc2"  // Microsoft Visual C++ 以外で編集されたリソース
-#include "l.JPN\afxres.rc"      // 標準コンポーネント
+#include "res\MFCApplication4.rc2"  // Microsoft Visual C++ 闔会ｽ･陞滓じ縲帝こ・ｨ鬮ｮ繝ｻ・・ｹｧ蠕娯螺郢晢ｽｪ郢ｧ・ｽ郢晢ｽｼ郢ｧ・ｹ
+#include "l.JPN\afxres.rc"      // 隶灘綜・ｺ謔ｶ縺慕ｹ晢ｽｳ郢晄亢繝ｻ郢晞亂ﾎｦ郢昴・
 #if !defined(_AFXDLL)
-#include  "l.JPN\afxribbon.rc"   // MFC リボンおよびコントロール バー リソース
+#include  "l.JPN\afxribbon.rc"   // MFC 郢晢ｽｪ郢晄㈱ﾎｦ邵ｺ鄙ｫ・育ｸｺ・ｳ郢ｧ・ｳ郢晢ｽｳ郢晏現ﾎ溽ｹ晢ｽｼ郢晢ｽｫ 郢晁・繝ｻ 郢晢ｽｪ郢ｧ・ｽ郢晢ｽｼ郢ｧ・ｹ
 #endif
 #endif
 

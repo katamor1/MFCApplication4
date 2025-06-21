@@ -8,45 +8,48 @@
 
 IMPLEMENT_DYNAMIC(CMyDialog, CDialogEx)
 
-CMyDialog::CMyDialog(CWnd* pParent /*=nullptr*/)
-	: CDialogEx(IDD_CMyDialog, pParent), m_pActiveGrid(nullptr)
-    , m_nTotalWidth(0)
-    , m_nTotalHeight(0)
-    , m_nHScrollPos(0)
-    , m_nVScrollPos(0)
+CMyDialog::CMyDialog(CWnd *pParent /*=nullptr*/)
+    : CDialogEx(IDD, pParent), m_pActiveGrid(nullptr), m_nTotalWidth(0), m_nTotalHeight(0), m_nHScrollPos(0), m_nVScrollPos(0)
 {
-
 }
 
 CMyDialog::~CMyDialog()
 {
 }
 
-void CMyDialog::DoDataExchange(CDataExchange* pDX)
+void CMyDialog::DoDataExchange(CDataExchange *pDX)
 {
-	CDialogEx::DoDataExchange(pDX);
+    CDialogEx::DoDataExchange(pDX);
 }
 
 BEGIN_MESSAGE_MAP(CMyDialog, CDialogEx)
-    ON_MESSAGE(WM_GRID_ACTIVATED, &CMyDialog::OnGridActivated)
-	ON_MESSAGE(WM_GRID_CELL_CHANGED, &CMyDialog::OnGridCellChanged)
-    ON_WM_HSCROLL()
-    ON_WM_VSCROLL()
-    ON_WM_SIZE()
-    ON_WM_MOUSEWHEEL()
+ON_MESSAGE(WM_GRID_ACTIVATED, &CMyDialog::OnGridActivated)
+ON_MESSAGE(WM_GRID_NAV_BOUNDARY_HIT, &CMyDialog::OnGridNavBoundaryHit)
+ON_MESSAGE(WM_GRID_CELL_CHANGED, &CMyDialog::OnGridCellChanged)
+ON_WM_HSCROLL()
+ON_WM_VSCROLL()
+ON_WM_SIZE()
+ON_WM_MOUSEWHEEL()
 END_MESSAGE_MAP()
 
 LRESULT CMyDialog::OnGridCellChanged(WPARAM wParam, LPARAM lParam)
 {
-	UINT nCtrlID = (UINT)wParam;
-	int row = LOWORD(lParam);
-	int col = HIWORD(lParam);
-	// ここでセルの変更に対する処理を記述
-	// (例) TRACE(L"Cell (%d, %d) in control %u changed.\n", row, col, nCtrlID);
-	return 0;
+    UINT nCtrlID = (UINT)wParam;
+    int row = LOWORD(lParam);
+    int col = HIWORD(lParam);
+    // ここでセルの変更に対する処理を記述
+    // (例) TRACE(_T("Cell (%d, %d) in control %u changed.\n"), row, col, nCtrlID);
+    return 0;
 }
 
 // CMyDialog メッセージ ハンドラー
+
+void CMyDialog::OnOK()
+{
+    // この関数をオーバーライドし、中身を空にします。
+    // 基底クラスの CDialogEx::OnOK() を呼び出さないことで、
+    // Enterキーを押してもダイアログが閉じなくなります。
+}
 
 BOOL CMyDialog::OnInitDialog()
 {
@@ -56,58 +59,66 @@ BOOL CMyDialog::OnInitDialog()
     ModifyStyle(0, WS_VSCROLL | WS_HSCROLL);
     m_pActiveGrid = nullptr;
 
-    int currentY = GRID_MARGIN_Y;
+    const int margin = 10;
+    int currentY = margin;
+    int rightmostX = 0;
     CRect gridRect;
+    // CGridCtrlから1個あたりの正しい高さを取得する
+    int gridHeight;
+    int gridWidth;
 
-    // 10個のグリッドコントロールを動的に生成・配置
-    for (int i = 0; i < GRID_COUNT; ++i)
+    for (int row = 0; row < GRID_ARRAY_ROWS; ++row)
     {
-        UINT nID = AFX_IDW_PANE_FIRST + i;
-
-		// 1. グリッドの行数・列数を設定
-        // まず、グリッドの構成を設定します
-        m_grids[i].SetupGrid(6, 2); // 例: 6行2列
-        m_grids[i].SetRowHeight(22);
-		// 2. 列の幅を設定
-		m_grids[i].SetColumnWidth(0, 120);
-		m_grids[i].SetColumnWidth(1, 220);
-
-		// 3. 各セルのプロパティ（編集可否など）を設定
-		// 仕様書に基づき、編集可能なセルを設定
-		// SetCellEditableは、背景色も自動で白に変更します
-		m_grids[i].SetCellEditable(1, 1, TRUE); // (行:2, 列:2)のセル
-		m_grids[i].SetCellEditable(2, 1, TRUE); // (行:3, 列:2)のセル
-		m_grids[i].SetCellEditable(3, 1, TRUE); // (行:4, 列:2)のセル
-		m_grids[i].SetCellEditable(5, 1, TRUE); // (行:6, 列:2)のセル
-
-		// 4. セルの初期テキストを設定 (オプション)
-		for (int r = 0; r < 6; ++r)
-		{
-			for (int c = 0; c < 2; ++c)
-			{
-				CString str;
-				str.Format(L"Cell (%d, %d)", r + 1, c + 1);
-				m_grids[i].SetCellText(r, c, str);
-			}
-		}
-			
-		// CGridCtrlから1個あたりの正しい高さを取得する
-		const int gridHeight = m_grids[i].GetRequiredHeight();
-		const int gridWidth =  m_grids[i].GetRequiredWidth();
-
-        // グリッドの位置とサイズを計算
-        gridRect.SetRect(10, currentY, 10 + gridWidth, currentY + gridHeight);
-
-        if (!m_grids[i].Create(gridRect, this, nID))
+        int currentX = margin;
+        for (int col = 0; col < GRID_ARRAY_COLS; ++col)
         {
-            TRACE(L"Failed to create grid control #%d\n", i);
-            continue; // 生成に失敗したら次へ
+            int index = row * GRID_ARRAY_COLS + col;
+            UINT nID = AFX_IDW_PANE_FIRST + index;
+
+            // グリッドをセットアップ（6行2列）
+            m_grids[index].SetupGrid(6, 2);
+            m_grids[index].SetRowHeight(22);
+            m_grids[index].SetColumnWidth(0, 120);
+            m_grids[index].SetColumnWidth(1, 220);
+
+            // 3. 各セルのプロパティ（編集可否など）を設定
+            m_grids[index].SetCellEditable(1, 1, TRUE); // (行:2, 列:2)のセル
+            m_grids[index].SetCellEditable(2, 1, TRUE); // (行:3, 列:2)のセル
+            m_grids[index].SetCellEditable(3, 1, TRUE); // (行:4, 列:2)のセル
+            m_grids[index].SetCellEditable(5, 1, TRUE); // (行:6, 列:2)のセル
+
+            // 4. セルの初期テキストを設定 (オプション)
+            for (int r = 0; r < 6; ++r)
+            {
+                for (int c = 0; c < 2; ++c)
+                {
+                    CString str;
+                    str.Format(_T("Cell (%d, %d)"), r + 1, c + 1);
+                    m_grids[index].SetCellText(r, c, str);
+                }
+            }
+
+            // CGridCtrlから1個あたりの正しい高さを取得する
+            gridHeight = m_grids[index].GetRequiredHeight();
+            gridWidth = m_grids[index].GetRequiredWidth();
+
+            // グリッドの位置とサイズを計算
+            CRect gridRect(currentX, currentY, currentX + gridWidth, currentY + gridHeight);
+
+            if (!m_grids[index].Create(gridRect, this, nID))
+            {
+                TRACE(_T("Failed to create grid control #%d\n"), index);
+                continue; // 生成に失敗したら次へ
+            }
+            currentX += gridWidth + margin;
+            if (currentX > rightmostX)
+                rightmostX = currentX;
         }
-        // 次のグリッドのY座標を、GetWindowRectに頼らずに直接計算する
-        currentY += gridHeight + GRID_MARGIN_Y;
+        currentY += gridHeight + margin;
     }
 
-    // 全てのコントロールを配置した後の合計の高さを保存
+    // 全てのコントロールを配置した後の合計のサイズを保存
+    m_nTotalWidth = rightmostX;
     m_nTotalHeight = currentY;
 
     // スクロール位置を初期化
@@ -167,7 +178,7 @@ void CMyDialog::UpdateScrollInfo()
 void CMyDialog::OnSize(UINT nType, int cx, int cy)
 {
     CDialogEx::OnSize(nType, cx, cy);
-    
+
     // ウィンドウの準備ができていればスクロール情報を更新
     if (GetSafeHwnd() != nullptr)
     {
@@ -176,7 +187,7 @@ void CMyDialog::OnSize(UINT nType, int cx, int cy)
 }
 
 // 垂直スクロールバーが操作されたときの処理
-void CMyDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CMyDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
 {
     CRect clientRect;
     GetClientRect(&clientRect);
@@ -185,31 +196,45 @@ void CMyDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
     switch (nSBCode)
     {
-    case SB_LINEUP:    currentPos -= lineHeight; break;
-    case SB_LINEDOWN:  currentPos += lineHeight; break;
-    case SB_PAGEUP:    currentPos -= GetScrollLimit(SB_VERT) > 0 ? clientRect.Height() : lineHeight; break;
-    case SB_PAGEDOWN:  currentPos += GetScrollLimit(SB_VERT) > 0 ? clientRect.Height() : lineHeight; break;
-    case SB_THUMBTRACK: currentPos = nPos; break;
-    case SB_TOP:       currentPos = 0; break;
-    case SB_BOTTOM:    currentPos = GetScrollLimit(SB_VERT); break;
+    case SB_LINEUP:
+        currentPos -= lineHeight;
+        break;
+    case SB_LINEDOWN:
+        currentPos += lineHeight;
+        break;
+    case SB_PAGEUP:
+        currentPos -= GetScrollLimit(SB_VERT) > 0 ? clientRect.Height() : lineHeight;
+        break;
+    case SB_PAGEDOWN:
+        currentPos += GetScrollLimit(SB_VERT) > 0 ? clientRect.Height() : lineHeight;
+        break;
+    case SB_THUMBTRACK:
+        currentPos = nPos;
+        break;
+    case SB_TOP:
+        currentPos = 0;
+        break;
+    case SB_BOTTOM:
+        currentPos = GetScrollLimit(SB_VERT);
+        break;
     }
 
-    // --- ▼▼▼ この部分が重要です ▼▼▼ ---
     // 新しいスクロール位置が有効な範囲内に収まるように強制します (クランプ処理)。
     // これにより、スクロール範囲の限界を超える「バウンド」や「スナップ」を防ぎます。
     int maxScrollPos = GetScrollLimit(SB_VERT);
-    if (currentPos < 0) currentPos = 0;
-    if (currentPos > maxScrollPos) currentPos = maxScrollPos;
-    // --- ▲▲▲ この部分が重要です ▲▲▲ ---
-
+    if (currentPos < 0)
+        currentPos = 0;
+    if (currentPos > maxScrollPos)
+        currentPos = maxScrollPos;
 
     // 位置に変化がなければ何もしない
-    if (currentPos == m_nVScrollPos) return;
+    if (currentPos == m_nVScrollPos)
+        return;
 
     // 画面を移動させる量を計算
     int scrollAmount = m_nVScrollPos - currentPos;
     m_nVScrollPos = currentPos;
-    
+
     // ウィンドウをスクロールし、スクロールバーの位置を更新
     ScrollWindow(0, scrollAmount);
     SetScrollPos(SB_VERT, m_nVScrollPos, TRUE);
@@ -218,7 +243,7 @@ void CMyDialog::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 }
 
 // 水平スクロールバーが操作されたときの処理
-void CMyDialog::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
+void CMyDialog::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
 {
     CRect clientRect;
     GetClientRect(&clientRect);
@@ -227,25 +252,39 @@ void CMyDialog::OnHScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 
     switch (nSBCode)
     {
-    case SB_LINELEFT:  currentPos -= lineHeight; break;
-    case SB_LINERIGHT: currentPos += lineHeight; break;
-    case SB_PAGELEFT:  currentPos -= GetScrollLimit(SB_HORZ) > 0 ? clientRect.Width() : lineHeight; break;
-    case SB_PAGERIGHT: currentPos += GetScrollLimit(SB_HORZ) > 0 ? clientRect.Width() : lineHeight; break;
-    case SB_THUMBTRACK: currentPos = nPos; break;
-    case SB_LEFT:      currentPos = 0; break;
-    case SB_RIGHT:     currentPos = GetScrollLimit(SB_HORZ); break;
+    case SB_LINELEFT:
+        currentPos -= lineHeight;
+        break;
+    case SB_LINERIGHT:
+        currentPos += lineHeight;
+        break;
+    case SB_PAGELEFT:
+        currentPos -= GetScrollLimit(SB_HORZ) > 0 ? clientRect.Width() : lineHeight;
+        break;
+    case SB_PAGERIGHT:
+        currentPos += GetScrollLimit(SB_HORZ) > 0 ? clientRect.Width() : lineHeight;
+        break;
+    case SB_THUMBTRACK:
+        currentPos = nPos;
+        break;
+    case SB_LEFT:
+        currentPos = 0;
+        break;
+    case SB_RIGHT:
+        currentPos = GetScrollLimit(SB_HORZ);
+        break;
     }
 
-    // --- ▼▼▼ この部分が重要です ▼▼▼ ---
     // 新しいスクロール位置が有効な範囲内に収まるように強制します (クランプ処理)。
     int maxScrollPos = GetScrollLimit(SB_HORZ);
-    if (currentPos < 0) currentPos = 0;
-    if (currentPos > maxScrollPos) currentPos = maxScrollPos;
-    // --- ▲▲▲ この部分が重要です ▲▲▲ ---
-
+    if (currentPos < 0)
+        currentPos = 0;
+    if (currentPos > maxScrollPos)
+        currentPos = maxScrollPos;
 
     // 位置に変化がなければ何もしない
-    if (currentPos == m_nHScrollPos) return;
+    if (currentPos == m_nHScrollPos)
+        return;
 
     // 画面を移動させる量を計算
     int scrollAmount = m_nHScrollPos - currentPos;
@@ -264,68 +303,42 @@ BOOL CMyDialog::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
     // Shiftキーが押されている場合は水平スクロール
     if (nFlags & MK_SHIFT)
     {
-        if (zDelta > 0) OnHScroll(SB_LINELEFT, 0, nullptr);
-        else OnHScroll(SB_LINERIGHT, 0, nullptr);
+        if (zDelta > 0)
+            OnHScroll(SB_LINELEFT, 0, nullptr);
+        else
+            OnHScroll(SB_LINERIGHT, 0, nullptr);
     }
     else // それ以外は垂直スクロール
     {
-        if (zDelta > 0) OnVScroll(SB_LINEUP, 0, nullptr);
-        else OnVScroll(SB_LINEDOWN, 0, nullptr);
+        if (zDelta > 0)
+            OnVScroll(SB_LINEUP, 0, nullptr);
+        else
+            OnVScroll(SB_LINEDOWN, 0, nullptr);
     }
 
     return TRUE;
 }
 
-BOOL CMyDialog::PreTranslateMessage(MSG* pMsg)
+BOOL CMyDialog::PreTranslateMessage(MSG *pMsg)
 {
-    if (pMsg->message == WM_KEYDOWN)
+    // Escapeキーが押された場合、メッセージをここで処理済み（TRUE）とし、
+    // それ以上伝搬させないことで、ダイアログが閉じるのを防ぎます。
+    if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
     {
-        // アクティブなグリッドがあり、かつ矢印キーが押された場合
-        if (m_pActiveGrid &&
-            (pMsg->wParam == VK_UP || pMsg->wParam == VK_DOWN || pMsg->wParam == VK_LEFT || pMsg->wParam == VK_RIGHT))
-        {
-            int currentIndex = -1;
-            // 現在アクティブなグリッドのインデックスを探す
-            for (int i = 0; i < GRID_COUNT; ++i)
-            {
-                if (&m_grids[i] == m_pActiveGrid)
-                {
-                    currentIndex = i;
-                    break;
-                }
-            }
-
-            if (currentIndex != -1)
-            {
-                int newIndex = -1;
-
-                switch (pMsg->wParam)
-                {
-                case VK_UP:
-                    if (currentIndex > 0) newIndex = currentIndex - 1;
-                    break;
-                case VK_DOWN:
-                    if (currentIndex < GRID_COUNT - 1) newIndex = currentIndex + 1;
-                    break;
-                case VK_LEFT:
-                    break;
-                case VK_RIGHT:
-                    break;
-                }
-
-                // 新しい移動先があれば、アクティブグリッドを更新
-                if (newIndex != -1)
-                {
-                    ActivateGrid(&m_grids[newIndex]);
-                }
-            }
-            return TRUE; // 矢印キーのメッセージを処理したので、ここで終了
-        }
+        return TRUE; // メッセージを「食べた」ことにして、何もしない
     }
+
+    // Enterキーが押された場合も同様に無効化
+    if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN)
+    {
+        return TRUE; // Enterキーもここで握りつぶす
+    }
+
+    // その他のメッセージは、デフォルトの処理に任せます。
     return CDialogEx::PreTranslateMessage(pMsg);
 }
 
-void CMyDialog::ActivateGrid(CGridCtrl* pGridToActivate)
+void CMyDialog::ActivateGrid(CGridCtrl *pGridToActivate)
 {
     if (pGridToActivate && pGridToActivate != m_pActiveGrid)
     {
@@ -333,7 +346,7 @@ void CMyDialog::ActivateGrid(CGridCtrl* pGridToActivate)
         m_pActiveGrid = pGridToActivate;
 
         // 全てのグリッドコントロールをループし、アクティブ/非アクティブを設定
-        for (int i = 0; i < GRID_COUNT; ++i)
+        for (int i = 0; i < TOTAL_GRIDS; ++i)
         {
             m_grids[i].SetActive(&m_grids[i] == m_pActiveGrid);
         }
@@ -347,15 +360,70 @@ void CMyDialog::ActivateGrid(CGridCtrl* pGridToActivate)
 LRESULT CMyDialog::OnGridActivated(WPARAM wParam, LPARAM lParam)
 {
     UINT nCtrlID = (UINT)wParam;
-    CGridCtrl* pActivatedGrid = (CGridCtrl*)GetDlgItem(nCtrlID);
+    CGridCtrl *pActivatedGrid = (CGridCtrl *)GetDlgItem(nCtrlID);
     ActivateGrid(pActivatedGrid);
     return 0;
 }
 
-
-void CMyDialog::EnsureGridVisible(CGridCtrl* pGrid)
+LRESULT CMyDialog::OnGridNavBoundaryHit(WPARAM wParam, LPARAM lParam)
 {
-    if (!pGrid || !pGrid->GetSafeHwnd()) return;
+    UINT nKey = (UINT)wParam;    // 押されたカーソルキー (VK_UPなど)
+    UINT nCtrlID = (UINT)lParam; // 通知元のグリッドのID
+
+    if (!m_pActiveGrid || m_pActiveGrid->GetDlgCtrlID() != nCtrlID)
+    {
+        return 0; // アクティブなグリッドからの通知でなければ無視
+    }
+
+    int currentIndex = -1;
+    for (int i = 0; i < TOTAL_GRIDS; ++i)
+    {
+        if (&m_grids[i] == m_pActiveGrid)
+        {
+            currentIndex = i;
+            break;
+        }
+    }
+
+    if (currentIndex != -1)
+    {
+        int currentRow = currentIndex / GRID_ARRAY_COLS;
+        int currentCol = currentIndex % GRID_ARRAY_COLS;
+        int newIndex = -1;
+
+        switch (nKey)
+        {
+        case VK_UP:
+            if (currentRow > 0)
+                newIndex = currentIndex - GRID_ARRAY_COLS;
+            break;
+        case VK_DOWN:
+            if (currentRow < GRID_ARRAY_ROWS - 1)
+                newIndex = currentIndex + GRID_ARRAY_COLS;
+            break;
+        case VK_LEFT:
+            if (currentCol > 0)
+                newIndex = currentIndex - 1;
+            break;
+        case VK_RIGHT:
+            if (currentCol < GRID_ARRAY_COLS - 1)
+                newIndex = currentIndex + 1;
+            break;
+        }
+
+        if (newIndex != -1)
+        {
+            ActivateGrid(&m_grids[newIndex]);
+        }
+    }
+
+    return 0;
+}
+
+void CMyDialog::EnsureGridVisible(CGridCtrl *pGrid)
+{
+    if (!pGrid || !pGrid->GetSafeHwnd())
+        return;
 
     CRect clientRect;
     GetClientRect(&clientRect); // ダイアログの現在の表示領域
@@ -376,7 +444,7 @@ void CMyDialog::EnsureGridVisible(CGridCtrl* pGrid)
         // はみ出した分だけスクロール位置を進める
         newVPos += (gridRect.bottom - clientRect.bottom);
     }
-    
+
     // --- 水平スクロール量の計算 ---
     int newHPos = m_nHScrollPos;
     if (gridRect.left < 0) // 左にはみ出している場合
@@ -405,7 +473,7 @@ void CMyDialog::EnsureGridVisible(CGridCtrl* pGrid)
 
         // ウィンドウをスクロール
         ScrollWindow(dx, dy);
-        
+
         // スクロールバーの位置を更新
         SetScrollPos(SB_HORZ, m_nHScrollPos, TRUE);
         SetScrollPos(SB_VERT, m_nVScrollPos, TRUE);

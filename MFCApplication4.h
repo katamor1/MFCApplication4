@@ -5,10 +5,10 @@
 #pragma once
 
 #ifndef __AFXWIN_H__
-	#error "PCH に対してこのファイルをインクルードする前に 'pch.h' をインクルードしてください"
+#error "PCH に対してこのファイルをインクルードする前に 'pch.h' をインクルードしてください"
 #endif
 
-#include "resource.h"		// メイン シンボル
+#include "resource.h" // メイン シンボル
 
 #define WM_APP_SHOW_OPERATION_STATUS (WM_APP + 3)
 
@@ -21,12 +21,12 @@ class CMFCApplication4App : public CWinApp
 public:
 	CMFCApplication4App();
 
-// オーバーライド
+	// オーバーライド
 public:
 	virtual BOOL InitInstance();
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	virtual BOOL PreTranslateMessage(MSG *pMsg);
 
-// 実装
+	// 実装
 
 	DECLARE_MESSAGE_MAP()
 };

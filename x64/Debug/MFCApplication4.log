@@ -1,2 +1,16 @@
-﻿  MFCApplication4Dlg.cpp
+﻿  pch.cpp
+  CMyDialog.cpp
+  CMyDialog2.cpp
+  CMyDialog3.cpp
+  CMyEdit.cpp
+  CView2.cpp
+  CenterEdit.cpp
+  GridCtrl.cpp
+  InPlaceEdit.cpp
+  KeyButton.cpp
+  MFCApplication4.cpp
+  MFCApplication4Dlg.cpp
+  SoftwareKeyboardDlg.cpp
+  View1.cpp
+  コードを生成中...
   MFCApplication4.vcxproj -> C:\Users\stell\source\repos\MFCApplication4\x64\Debug\MFCApplication4.exe

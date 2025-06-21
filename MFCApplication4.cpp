@@ -11,13 +11,11 @@
 #define new DEBUG_NEW
 #endif
 
-
 // CMFCApplication4App
 
 BEGIN_MESSAGE_MAP(CMFCApplication4App, CWinApp)
-	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
+ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
 END_MESSAGE_MAP()
-
 
 // CMFCApplication4App の構築
 
@@ -27,18 +25,15 @@ CMFCApplication4App::CMFCApplication4App()
 	// ここに InitInstance 中の重要な初期化処理をすべて記述してください。
 }
 
-
 // 唯一の CMFCApplication4App オブジェクト
 
 CMFCApplication4App theApp;
-
 
 // CMFCApplication4App の初期化
 
 BOOL CMFCApplication4App::InitInstance()
 {
 	CWinApp::InitInstance();
-
 
 	// ダイアログにシェル ツリー ビューまたはシェル リスト ビュー コントロールが
 	// 含まれている場合にシェル マネージャーを作成します。
@@ -90,25 +85,24 @@ BOOL CMFCApplication4App::InitInstance()
 	return FALSE;
 }
 
-
 // アプリケーション全体で不要な操作をフィルタリングする
-BOOL CMFCApplication4App::PreTranslateMessage(MSG* pMsg)
+BOOL CMFCApplication4App::PreTranslateMessage(MSG *pMsg)
 {
-    // マウスクリック関連のメッセージ（クライアント領域・非クライアント領域）を検出
-    if ((pMsg->message >= WM_LBUTTONDOWN && pMsg->message <= WM_MBUTTONDBLCLK) ||
-        (pMsg->message >= WM_NCLBUTTONDOWN && pMsg->message <= WM_NCMBUTTONDBLCLK))
-    {
-        // ボタンが押された瞬間のメッセージのみを対象とする
-        if (pMsg->message == WM_LBUTTONDOWN || pMsg->message == WM_RBUTTONDOWN || pMsg->message == WM_MBUTTONDOWN ||
-            pMsg->message == WM_NCLBUTTONDOWN || pMsg->message == WM_NCRBUTTONDOWN || pMsg->message == WM_NCMBUTTONDOWN)
-        {
-            // メインウィンドウに通知メッセージを送信
-            if (m_pMainWnd && m_pMainWnd->GetSafeHwnd())
-            {
-                m_pMainWnd->PostMessage(WM_APP_SHOW_OPERATION_STATUS, 0, 0);
-            }
-        }
-    }
+	// マウスクリック関連のメッセージ（クライアント領域・非クライアント領域）を検出
+	if ((pMsg->message >= WM_LBUTTONDOWN && pMsg->message <= WM_MBUTTONDBLCLK) ||
+		(pMsg->message >= WM_NCLBUTTONDOWN && pMsg->message <= WM_NCMBUTTONDBLCLK))
+	{
+		// ボタンが押された瞬間のメッセージのみを対象とする
+		if (pMsg->message == WM_LBUTTONDOWN || pMsg->message == WM_RBUTTONDOWN || pMsg->message == WM_MBUTTONDOWN ||
+			pMsg->message == WM_NCLBUTTONDOWN || pMsg->message == WM_NCRBUTTONDOWN || pMsg->message == WM_NCMBUTTONDOWN)
+		{
+			// メインウィンドウに通知メッセージを送信
+			if (m_pMainWnd && m_pMainWnd->GetSafeHwnd())
+			{
+				m_pMainWnd->PostMessage(WM_APP_SHOW_OPERATION_STATUS, 0, 0);
+			}
+		}
+	}
 
 	// --- 1. Alt+F4 と Alt+Space の無効化 ---
 	// WM_SYSKEYDOWNは、Altキーが押されている状態で他のキーが押された場合に発生します

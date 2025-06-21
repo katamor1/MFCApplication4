@@ -18,17 +18,13 @@ const int CLOSE_BTN_SIZE = 30;
 
 IMPLEMENT_DYNAMIC(CSoftwareKeyboardDlg, CDialogEx)
 
-CSoftwareKeyboardDlg::CSoftwareKeyboardDlg(CEdit* pTargetEdit, CWnd* pParent /*=nullptr*/)
+CSoftwareKeyboardDlg::CSoftwareKeyboardDlg(CEdit *pTargetEdit, CWnd *pParent /*=nullptr*/)
     : CDialogEx(IDD_SW_KEYBOARD, pParent),
       m_pTargetEdit(pTargetEdit),
       m_bShiftOn(false),
       m_bCapsLockOn(false),
-            // --- 修正箇所：ここから ---
-      // m_bLCtrlOn(false), m_bRCtrlOn(false),
-      // m_bLAltOn(false), m_bRAltOn(false),
       m_bCtrlOn(false),
       m_bAltOn(false),
-      // --- 修正箇所：ここまで ---
       m_bFnOn(false),
       m_bDragging(false)
 {
@@ -38,38 +34,31 @@ CSoftwareKeyboardDlg::CSoftwareKeyboardDlg(CEdit* pTargetEdit, CWnd* pParent /*=
 
 CSoftwareKeyboardDlg::~CSoftwareKeyboardDlg()
 {
-    for (auto& btn : m_KeyButtons)
+    for (auto &btn : m_KeyButtons)
     {
         delete btn;
     }
     m_KeyButtons.clear();
 }
 
-void CSoftwareKeyboardDlg::DoDataExchange(CDataExchange* pDX)
+void CSoftwareKeyboardDlg::DoDataExchange(CDataExchange *pDX)
 {
     CDialogEx::DoDataExchange(pDX);
 }
 
 BEGIN_MESSAGE_MAP(CSoftwareKeyboardDlg, CDialogEx)
-    ON_WM_PAINT()
-    ON_WM_LBUTTONDOWN()
-    ON_WM_LBUTTONUP()
-    ON_WM_MOUSEMOVE()
-    // IDC_KEY_BASEから65個分のID範囲のコマンドメッセージをすべてOnKeyClickにマップする
-    ON_COMMAND_RANGE(IDC_KEY_BASE, IDC_KEY_BASE + 100, &CSoftwareKeyboardDlg::OnKeyClick)
+ON_WM_PAINT()
+ON_WM_LBUTTONDOWN()
+ON_WM_LBUTTONUP()
+ON_WM_MOUSEMOVE()
+// IDC_KEY_BASEから65個分のID範囲のコマンドメッセージをすべてOnKeyClickにマップする
+ON_COMMAND_RANGE(IDC_KEY_BASE, IDC_KEY_BASE + 100, &CSoftwareKeyboardDlg::OnKeyClick)
 END_MESSAGE_MAP()
 
 BOOL CSoftwareKeyboardDlg::OnInitDialog()
 {
     CDialogEx::OnInitDialog();
 
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★                                                   ★
-    // ★             ↓↓↓ ここから修正 ↓↓↓             ★
-    // ★                                                   ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
-    // --- 修正箇所：ここから ---
     // 各行の合計スパン（キー幅の合計）を計算し、最も幅が広い行に合わせて
     // ダイアログ全体の幅を決定します。
     int max_span_units = 0;
@@ -91,14 +80,12 @@ BOOL CSoftwareKeyboardDlg::OnInitDialog()
             max_span_units = current_span;
         }
     }
-    
+
     // 動的に計算した幅でダイアログサイズを設定
     const int nRows = 5;
     int dlgWidth = (KEY_WIDTH * max_span_units) + (KEY_GAP * (max_span_units - 1));
     int dlgHeight = TITLE_BAR_HEIGHT + (KEY_HEIGHT * nRows) + (KEY_GAP * (nRows));
     SetWindowPos(nullptr, 0, 0, dlgWidth, dlgHeight, SWP_NOMOVE | SWP_NOZORDER);
-    // --- 修正箇所：ここまで ---
-
 
     // タイトルバーと閉じるボタンの領域を設定
     m_rcTitleBar.SetRect(0, 0, dlgWidth, TITLE_BAR_HEIGHT);
@@ -111,13 +98,14 @@ BOOL CSoftwareKeyboardDlg::OnInitDialog()
         int x = 0;
         for (int col = 0; col < nKeyArrayCols; ++col)
         {
-            const KEY_INFO& keyInfo = g_KeyLayout[row][col];
-            if (keyInfo.uId == 0) continue; // スパンのプレースホルダはスキップ
+            const KEY_INFO &keyInfo = g_KeyLayout[row][col];
+            if (keyInfo.uId == 0)
+                continue; // スパンのプレースホルダはスキップ
 
             int keyWidth = (keyInfo.nColumnSpan * KEY_WIDTH) + ((keyInfo.nColumnSpan - 1) * KEY_GAP);
             CRect keyRect(x, y, x + keyWidth, y + KEY_HEIGHT);
 
-            CKeyButton* pButton = new CKeyButton();
+            CKeyButton *pButton = new CKeyButton();
             pButton->Create(keyInfo.szLabel, WS_CHILD | WS_VISIBLE | BS_OWNERDRAW, keyRect, this, keyInfo.uId);
             pButton->SetFont(GetFont());
             pButton->SetKeyInfo(this, &keyInfo);
@@ -146,7 +134,7 @@ void CSoftwareKeyboardDlg::OnPaint()
 
     // 2. 閉じるボタンを描画
     CPen pen(PS_SOLID, 2, CLR_CLOSE_X);
-    CPen* pOldPen = dc.SelectObject(&pen);
+    CPen *pOldPen = dc.SelectObject(&pen);
     dc.MoveTo(m_rcCloseBtn.left + 8, m_rcCloseBtn.top + 8);
     dc.LineTo(m_rcCloseBtn.right - 8, m_rcCloseBtn.bottom - 8);
     dc.MoveTo(m_rcCloseBtn.left + 8, m_rcCloseBtn.bottom - 8);
@@ -159,7 +147,7 @@ void CSoftwareKeyboardDlg::OnLButtonDown(UINT nFlags, CPoint point)
     // 閉じるボタンがクリックされたかチェック
     if (m_rcCloseBtn.PtInRect(point))
     {
-        OnCancel(); // キャンセル終了
+        EndDialog(IDCANCEL);
         return;
     }
 
@@ -167,7 +155,6 @@ void CSoftwareKeyboardDlg::OnLButtonDown(UINT nFlags, CPoint point)
     if (m_rcTitleBar.PtInRect(point))
     {
         m_bDragging = true;
-        // 修正後：クリックされたクライアント座標をそのままオフセットとして保存する
         m_ptMouseOffset = point;
         SetCapture();
     }
@@ -198,7 +185,7 @@ void CSoftwareKeyboardDlg::OnMouseMove(UINT nFlags, CPoint point)
 
 void CSoftwareKeyboardDlg::OnKeyClick(UINT nID)
 {
-    const KEY_INFO* pKeyInfo = nullptr;
+    const KEY_INFO *pKeyInfo = nullptr;
     // クリックされたボタンの情報を探す
     for (int row = 0; row < 5; ++row)
     {
@@ -218,23 +205,22 @@ key_found:
     }
 }
 
-void CSoftwareKeyboardDlg::HandleKeyPress(const KEY_INFO* pKeyInfo)
+void CSoftwareKeyboardDlg::HandleKeyPress(const KEY_INFO *pKeyInfo)
 {
     switch (pKeyInfo->eKeyType)
     {
     case KT_NORMAL:
     {
-        // --- 修正箇所：ここから ---
         // OSのレイアウト設定に依存せず、KeyDefine.hの定義に基づいて
         // 入力文字を決定するロジックに戻します。
-        
+
         TCHAR ch = 0;
         bool bIsAlphabet = (pKeyInfo->bVirtKey >= 'A' && pKeyInfo->bVirtKey <= 'Z');
 
         if (bIsAlphabet)
         {
             // 英字キーの場合：ShiftとCaps Lockの両方を考慮
-            if (m_bShiftOn ^ m_bCapsLockOn) 
+            if (m_bShiftOn ^ m_bCapsLockOn)
             {
                 // 大文字（szShiftLabelから取得）
                 ch = pKeyInfo->szShiftLabel[0];
@@ -265,8 +251,6 @@ void CSoftwareKeyboardDlg::HandleKeyPress(const KEY_INFO* pKeyInfo)
         {
             SendChar(ch);
         }
-        // --- 修正箇所：ここまで ---
-
 
         // 通常キーを押したらShiftの状態は解除する
         if (m_bShiftOn)
@@ -277,37 +261,39 @@ void CSoftwareKeyboardDlg::HandleKeyPress(const KEY_INFO* pKeyInfo)
         break;
     }
     case KT_ACTION:
-        if (pKeyInfo->bVirtKey == VK_RETURN) OnOK();
-        else if (pKeyInfo->bVirtKey == VK_ESCAPE) OnCancel();
-        else SendKey(pKeyInfo->bVirtKey); // Backspace, Delete, Tab, Spaceなど
+        if (pKeyInfo->bVirtKey == VK_RETURN)
+            EndDialog(IDOK);
+        else if (pKeyInfo->bVirtKey == VK_ESCAPE)
+            EndDialog(IDCANCEL);
+        else
+            SendKey(pKeyInfo->bVirtKey); // Backspace, Delete, Tab, Spaceなど
         break;
 
     case KT_MODIFIER:
         switch (pKeyInfo->bVirtKey)
         {
-        case VK_CAPITAL: m_bCapsLockOn = !m_bCapsLockOn; break;
+        case VK_CAPITAL:
+            m_bCapsLockOn = !m_bCapsLockOn;
+            break;
         case VK_LSHIFT:
-        case VK_RSHIFT:  m_bShiftOn = !m_bShiftOn; break;
-
-        // --- 修正箇所：ここから ---
-        // case VK_LCONTROL:m_bLCtrlOn = !m_bLCtrlOn; m_bRCtrlOn = false; break;
-        // case VK_RCONTROL:m_bRCtrlOn = !m_bRCtrlOn; m_bLCtrlOn = false; break;
-        // case VK_LMENU:   m_bLAltOn = !m_bLAltOn; m_bRAltOn = false; break;
-        // case VK_RMENU:   m_bRAltOn = !m_bRAltOn; m_bLAltOn = false; break;
-        
+        case VK_RSHIFT:
+            m_bShiftOn = !m_bShiftOn;
+            break;
         // 左右どちらのCtrlでも、単一のm_bCtrlOnをトグルする
         case VK_LCONTROL:
-        case VK_RCONTROL: 
-            m_bCtrlOn = !m_bCtrlOn; 
+        case VK_RCONTROL:
+            m_bCtrlOn = !m_bCtrlOn;
             break;
-        
+
         // 左右どちらのAltでも、単一のm_bAltOnをトグルする
         case VK_LMENU:
-        case VK_RMENU:    
-            m_bAltOn = !m_bAltOn; 
+        case VK_RMENU:
+            m_bAltOn = !m_bAltOn;
             break;
-        // --- 修正箇所：ここまで ---
-        default:         if (wcscmp(pKeyInfo->szLabel, L"Fn") == 0) m_bFnOn = !m_bFnOn; break;
+        default:
+            if (wcscmp(pKeyInfo->szLabel, _T("Fn")) == 0)
+                m_bFnOn = !m_bFnOn;
+            break;
         }
         UpdateAllKeys();
         break;
@@ -326,12 +312,6 @@ void CSoftwareKeyboardDlg::SendChar(TCHAR ch)
 // 特殊キーを送信
 void CSoftwareKeyboardDlg::SendKey(BYTE vk)
 {
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★                                                   ★
-    // ★             ↓↓↓ ここから修正 ↓↓↓             ★
-    // ★                                                   ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-
     // Backspace (VK_BACK) は、文字入力の制御文字としてWM_CHARで送信すると、
     // CEditコントロールでより確実に処理されます。
     // 同様に、TabやSpaceもWM_CHARで送信するのが適切です。
@@ -349,7 +329,7 @@ void CSoftwareKeyboardDlg::SendKey(BYTE vk)
 // 全キーの再描画を要求
 void CSoftwareKeyboardDlg::UpdateAllKeys()
 {
-    for (auto& btn : m_KeyButtons)
+    for (auto &btn : m_KeyButtons)
     {
         btn->Invalidate();
     }
@@ -357,12 +337,8 @@ void CSoftwareKeyboardDlg::UpdateAllKeys()
 
 void CSoftwareKeyboardDlg::OnOK()
 {
-    // Enterキーが押された: IDOKでダイアログを閉じる
-    EndDialog(IDOK);
 }
 
 void CSoftwareKeyboardDlg::OnCancel()
 {
-    // Escキーまたは閉じるボタンが押された: IDCANCELでダイアログを閉じる
-    EndDialog(IDCANCEL);
 }

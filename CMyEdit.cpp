@@ -14,12 +14,12 @@ CMyEdit::~CMyEdit()
 }
 
 BEGIN_MESSAGE_MAP(CMyEdit, CEdit)
-    ON_WM_SETFOCUS()
+ON_WM_SETFOCUS()
 END_MESSAGE_MAP()
 
 // CMyEdit message handlers
 
-void CMyEdit::OnSetFocus(CWnd* pOldWnd)
+void CMyEdit::OnSetFocus(CWnd *pOldWnd)
 {
     CEdit::OnSetFocus(pOldWnd);
 
@@ -36,7 +36,7 @@ void CMyEdit::OnSetFocus(CWnd* pOldWnd)
     {
         SetWindowText(m_strOriginalText);
     }
-    
+
     // 4. キーボードが閉じたら、親ウィンドウにフォーカスを戻す
     //    これにより、エディットコントロールからフォーカスが外れる
     if (GetParent())

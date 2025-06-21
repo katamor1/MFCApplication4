@@ -1,7 +1,7 @@
-#pragma once
+ï»¿#pragma once
 
 // CCenterEdit
-// ‰‰ñ•\¦‚Ìƒ^ƒCƒ~ƒ“ƒO‚ğ’²®‚·‚é‚½‚ß‚ÌƒJƒXƒ^ƒ€ƒƒbƒZ[ƒW
+// åˆå›è¡¨ç¤ºã®ã‚¿ã‚¤ãƒŸãƒ³ã‚°ã‚’èª¿æ•´ã™ã‚‹ãŸã‚ã®ã‚«ã‚¹ã‚¿ãƒ ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸
 #define WM_APP_POST_INIT (WM_APP + 1)
 
 class CCenterEdit : public CEdit
@@ -12,30 +12,30 @@ public:
 	CCenterEdit();
 	virtual ~CCenterEdit();
 
-	// ƒI[ƒo[ƒ‰ƒCƒh
+	// ã‚ªãƒ¼ãƒãƒ¼ãƒ©ã‚¤ãƒ‰
 protected:
 	virtual void PreSubclassWindow();
-	virtual BOOL PreTranslateMessage(MSG* pMsg);
+	virtual BOOL PreTranslateMessage(MSG *pMsg);
 
-	// ƒƒ“ƒo•Ï”
+	// ãƒ¡ãƒ³ãƒå¤‰æ•°
 protected:
-	CBrush m_brushFocus;    // ƒtƒH[ƒJƒX‚Ì”wŒiƒuƒ‰ƒV
-	CBrush m_brushNoFocus;  // ”ñƒtƒH[ƒJƒX‚Ì”wŒiƒuƒ‰ƒV
-	COLORREF m_colorTextFocus;   // ƒtƒH[ƒJƒX‚Ì•¶šF
-	COLORREF m_colorTextNoFocus; // ”ñƒtƒH[ƒJƒX‚Ì•¶šF
+	CBrush m_brushFocus;		 // ãƒ•ã‚©ãƒ¼ã‚«ã‚¹æ™‚ã®èƒŒæ™¯ãƒ–ãƒ©ã‚·
+	CBrush m_brushNoFocus;		 // éãƒ•ã‚©ãƒ¼ã‚«ã‚¹æ™‚ã®èƒŒæ™¯ãƒ–ãƒ©ã‚·
+	COLORREF m_colorTextFocus;	 // ãƒ•ã‚©ãƒ¼ã‚«ã‚¹æ™‚ã®æ–‡å­—è‰²
+	COLORREF m_colorTextNoFocus; // éãƒ•ã‚©ãƒ¼ã‚«ã‚¹æ™‚ã®æ–‡å­—è‰²
 	bool m_bIsFirstTimeInit = true;
 	CString m_strOriginalText;
-	// À‘•
+	// å®Ÿè£…
 protected:
-	void UpdateTextPosition(); // ƒeƒLƒXƒg‚Ì‚’¼ˆÊ’u‚ğXV‚·‚éƒwƒ‹ƒp[ŠÖ”
+	void UpdateTextPosition(); // ãƒ†ã‚­ã‚¹ãƒˆã®å‚ç›´ä½ç½®ã‚’æ›´æ–°ã™ã‚‹ãƒ˜ãƒ«ãƒ‘ãƒ¼é–¢æ•°
 
-	// ƒƒbƒZ[ƒW ƒ}ƒbƒv
+	// ãƒ¡ãƒƒã‚»ãƒ¼ã‚¸ ãƒãƒƒãƒ—
 protected:
-	afx_msg HBRUSH CtlColor(CDC* pDC, UINT nCtlColor);
-	afx_msg void OnSetFocus(CWnd* pOldWnd);
-	afx_msg void OnKillFocus(CWnd* pNewWnd);
+	afx_msg HBRUSH CtlColor(CDC *pDC, UINT nCtlColor);
+	afx_msg void OnSetFocus(CWnd *pOldWnd);
+	afx_msg void OnKillFocus(CWnd *pNewWnd);
 	afx_msg void OnSize(UINT nType, int cx, int cy);
-	afx_msg void OnEnChange(); // ƒeƒLƒXƒg•ÏXƒnƒ“ƒhƒ‰
+	afx_msg void OnEnChange(); // ãƒ†ã‚­ã‚¹ãƒˆå¤‰æ›´ãƒãƒ³ãƒ‰ãƒ©
 	afx_msg LRESULT OnPostInit(WPARAM wParam, LPARAM lParam);
 
 	DECLARE_MESSAGE_MAP()

@@ -5,9 +5,15 @@
 // 色の定義
 const COLORREF CLR_WHITE = RGB(255, 255, 255);
 const COLORREF CLR_GRAY = RGB(240, 240, 240);
-const COLORREF CLR_BLUE = RGB(173, 216, 230); // 選択色 (Light Blue)
-const COLORREF CLR_YELLOW = RGB(255, 255, 224); // 編集色 (Light Yellow)
-const COLORREF CLR_BORDER = RGB(192, 192, 192); // 枠線色
+const COLORREF CLR_BLUE = RGB(173, 216, 230);     // 選択色 (Light Blue)
+const COLORREF CLR_YELLOW = RGB(255, 255, 224);   // 編集色 (Light Yellow)
+const COLORREF CLR_BORDER = RGB(192, 192, 192);   // 枠線色
+const COLORREF CLR_ORANGE = RGB(255, 192, 128);   // 正の数 背景色
+const COLORREF CLR_BLUE_TEXT = RGB(0, 0, 255);    // 正の数 文字色
+const COLORREF CLR_BLUE2_BG = RGB(120, 210, 230); // 負の数 背景色
+const COLORREF CLR_BLUE_BG = RGB(0, 0, 230);      // 負の数 背景色
+const COLORREF CLR_RED_TEXT = RGB(255, 0, 0);     // 負の数 文字色
+const COLORREF CLR_BLACK = RGB(0, 0, 0);          // デフォルト文字色
 
 CGridCtrl::CGridCtrl()
     : m_nRows(0), m_nCols(0),
@@ -15,7 +21,8 @@ CGridCtrl::CGridCtrl()
       m_defaultBgColor(RGB(240, 240, 240)),
       m_selectedCell(-1, -1),
       m_bIsActive(FALSE),
-      m_pEdit(nullptr)
+      m_pEdit(nullptr),
+      m_nTopRow(0) // m_nTopRowを0で初期化
 {
 }
 
@@ -49,12 +56,14 @@ BOOL CGridCtrl::SetupGrid(int nRows, int nCols)
         m_cells[i].m_bEditable = FALSE;
     }
 
+    m_nTopRow = 0;
     return TRUE;
 }
 
 void CGridCtrl::SetRowHeight(int nHeight)
 {
-    if (nHeight > 0) m_nRowHeight = nHeight;
+    if (nHeight > 0)
+        m_nRowHeight = nHeight;
 }
 
 void CGridCtrl::SetColumnWidth(int nCol, int nWidth)
@@ -70,10 +79,11 @@ void CGridCtrl::SetDefaultBgColor(COLORREF color)
     m_defaultBgColor = color;
 }
 
-void CGridCtrl::SetCellText(int nRow, int nCol, const CString& strText)
+void CGridCtrl::SetCellText(int nRow, int nCol, const CString &strText)
 {
     int index = GetCellIndex(nRow, nCol);
-    if (index != -1) m_cells[index].m_strText = strText;
+    if (index != -1)
+        m_cells[index].m_strText = strText;
 }
 
 CString CGridCtrl::GetCellText(int nRow, int nCol) const
@@ -102,19 +112,35 @@ BOOL CGridCtrl::IsCellEditable(int nRow, int nCol) const
 void CGridCtrl::SetCellBgColor(int nRow, int nCol, COLORREF color)
 {
     int index = GetCellIndex(nRow, nCol);
-    if (index != -1) m_cells[index].m_bgColor = color;
+    if (index != -1)
+        m_cells[index].m_bgColor = color;
 }
 
 BEGIN_MESSAGE_MAP(CGridCtrl, CWnd)
-    ON_WM_PAINT()
-    ON_WM_LBUTTONDOWN()
-    ON_WM_GETDLGCODE()
-    ON_WM_KEYDOWN()
-    ON_WM_SETFOCUS()
-    ON_WM_KILLFOCUS()
+ON_WM_PAINT()
+ON_WM_LBUTTONDOWN()
+ON_WM_GETDLGCODE()
+ON_WM_KEYDOWN()
+ON_WM_SETFOCUS()
+ON_WM_KILLFOCUS()
+ON_WM_VSCROLL()
+ON_WM_MOUSEWHEEL()
+ON_WM_CREATE()
 END_MESSAGE_MAP()
 
-BOOL CGridCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID)
+int CGridCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
+{
+    if (CWnd::OnCreate(lpCreateStruct) == -1)
+        return -1;
+
+    // ウィンドウハンドルが有効になった、この最適なタイミングで
+    // スクロールバーの初期化処理を呼び出します。
+    UpdateScrollbar();
+
+    return 0;
+}
+
+BOOL CGridCtrl::Create(const RECT &rect, CWnd *pParentWnd, UINT nID)
 {
     // ウィンドウクラスを登録
     WNDCLASS wndcls;
@@ -125,15 +151,14 @@ BOOL CGridCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID)
     wndcls.hCursor = ::LoadCursor(NULL, IDC_ARROW);
     wndcls.hbrBackground = (HBRUSH)(COLOR_WINDOW + 1);
     wndcls.lpszMenuName = NULL;
-    wndcls.lpszClassName = L"MyGridCtrl";
+    wndcls.lpszClassName = _T("MyGridCtrl");
 
     if (!AfxRegisterClass(&wndcls))
     {
-        TRACE(L"Failed to register window class\n");
+        TRACE(_T("Failed to register window class\n"));
         return FALSE;
     }
 
-    // --- ▼▼▼ 修正 ▼▼▼ ---
     // 列幅と行高の合計から、コントロールの正しいサイズを計算
     int totalWidth = 0;
     for (int i = 0; i < m_nCols; ++i)
@@ -147,8 +172,7 @@ BOOL CGridCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID)
     newRect.right = newRect.left + totalWidth;
     newRect.bottom = newRect.top + totalHeight;
 
-    return CWnd::Create(L"MyGridCtrl", L"", WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP, newRect, pParentWnd, nID);
-    // --- ▲▲▲ 修正 ▲▲▲ ---
+    return CWnd::Create(_T("MyGridCtrl"), _T(""), WS_CHILD | WS_VISIBLE | WS_BORDER | WS_TABSTOP | WS_VSCROLL, rect, pParentWnd, nID);
 }
 
 void CGridCtrl::OnPaint()
@@ -161,83 +185,131 @@ void CGridCtrl::OnPaint()
     memDC.CreateCompatibleDC(&dc);
     CBitmap bmp;
     bmp.CreateCompatibleBitmap(&dc, clientRect.Width(), clientRect.Height());
-    CBitmap* pOldBmp = memDC.SelectObject(&bmp);
+    CBitmap *pOldBmp = memDC.SelectObject(&bmp);
 
-    // 背景を白でクリア
     memDC.FillSolidRect(clientRect, CLR_WHITE);
 
-    // 枠線とセルの描画
     CPen pen(PS_SOLID, 1, CLR_BORDER);
-    CPen* pOldPen = memDC.SelectObject(&pen);
+    CPen *pOldPen = memDC.SelectObject(&pen);
 
-    // forループの境界をメンバ変数に変更
-    for (int row = 0; row < m_nRows; ++row)
+    // 表示する行の範囲を計算
+    int nStartRow = m_nTopRow;
+    int nEndRow = min(m_nRows, m_nTopRow + MAX_VISIBLE_ROWS);
+
+    for (int row = nStartRow; row < nEndRow; ++row)
     {
         for (int col = 0; col < m_nCols; ++col)
         {
+            // 物理的な描画位置を計算（rowからm_nTopRowを引く）
             CRect cellRect = GetCellRect(row, col);
             int index = GetCellIndex(row, col);
-            
-            // 背景色の決定
-            COLORREF bgColor = m_cells[index].m_bgColor;
+            if (index == -1)
+                continue;
+
+            CellInfo &cell = m_cells[index];
+
+            // 1. デフォルトの色を決定
+            COLORREF bgColor = cell.m_bgColor;
+            COLORREF textColor = CLR_BLACK;
+
+            // 2. 編集可能なセルの場合、内容に応じて色を上書き
+            if (cell.m_bEditable)
+            {
+                CString strText = cell.m_strText;
+                strText.Trim(); // 前後の空白を除去して判定
+
+                if (strText.IsEmpty())
+                {
+                    // ルール1: 空欄の場合
+                    bgColor = CLR_YELLOW;
+                }
+                else
+                {
+                    // 文字列が数値かどうかを判定
+                    LPTSTR pEnd;
+                    double dValue = _tcstod(strText, &pEnd);
+
+                    // 文字列の最後まで正常に数値として変換できたかチェック
+                    if (*pEnd == _T('\0'))
+                    {
+                        if (dValue < 0)
+                        {
+                            // ルール2: 負の数の場合
+                            bgColor = CLR_BLUE2_BG;
+                            textColor = CLR_RED_TEXT;
+                        }
+                        else if (dValue > 0)
+                        {
+                            // ルール3: 正の数の場合
+                            bgColor = CLR_ORANGE;
+                            textColor = CLR_BLUE_TEXT;
+                        }
+                        // dValueが0の場合は、ルール4（その他）に該当
+                    }
+                    // 数値でない文字列の場合も、ルール4（その他）に該当
+                }
+            }
+
+            // 3. 選択状態/編集状態の色を最優先で適用
             if (m_selectedCell.x == col && m_selectedCell.y == row)
             {
-                bgColor = (m_pEdit != nullptr) ? CLR_YELLOW : CLR_BLUE;
+                bgColor = (m_pEdit != nullptr) ? CLR_YELLOW : CLR_BLUE_BG;
+                // 編集状態の文字色は黒のまま
+                if (m_pEdit == nullptr)
+                {
+                    textColor = CLR_BLACK;
+                }
             }
-            memDC.FillSolidRect(cellRect, bgColor);
 
-            // 枠線
+            // 決定した色でセルを描画
+            memDC.FillSolidRect(cellRect, bgColor);
             memDC.MoveTo(cellRect.left, cellRect.top);
-            memDC.LineTo(cellRect.right -1, cellRect.top);
-            memDC.LineTo(cellRect.right -1, cellRect.bottom-1);
-            memDC.LineTo(cellRect.left, cellRect.bottom-1);
+            memDC.LineTo(cellRect.right - 1, cellRect.top);
+            memDC.LineTo(cellRect.right - 1, cellRect.bottom - 1);
+            memDC.LineTo(cellRect.left, cellRect.bottom - 1);
             memDC.LineTo(cellRect.left, cellRect.top);
 
-            // テキスト
+            // 決定した色でテキストを描画
             memDC.SetBkMode(TRANSPARENT);
+            memDC.SetTextColor(textColor);
             cellRect.DeflateRect(4, 2);
-            memDC.DrawText(m_cells[index].m_strText, cellRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
+            memDC.DrawText(cell.m_strText, cellRect, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_NOPREFIX);
         }
     }
 
     memDC.SelectObject(pOldPen);
-    
+
     // フォーカス枠の描画
     if (GetFocus() == this && m_selectedCell.x != -1)
     {
         CRect focusRect = GetCellRect(m_selectedCell.y, m_selectedCell.x);
         dc.DrawFocusRect(focusRect);
     }
-    
-    // --- ▼▼▼ ここから追加 ▼▼▼ ---
+
     // このグリッドがアクティブな場合、外枠を青で囲む
     if (m_bIsActive)
     {
-        CPen borderPen(PS_SOLID, 3, RGB(0, 0, 255)); // 太さ3の青いペン
-        CBrush* pOldBrush = (CBrush*)memDC.SelectStockObject(NULL_BRUSH); // 中は塗りつぶさない
-        CPen* pOldPen = memDC.SelectObject(&borderPen);
+        CPen borderPen(PS_SOLID, 3, RGB(0, 0, 255));                       // 太さ3の青いペン
+        CBrush *pOldBrush = (CBrush *)memDC.SelectStockObject(NULL_BRUSH); // 中は塗りつぶさない
+        CPen *pOldPen = memDC.SelectObject(&borderPen);
 
         CRect rcClient;
         GetClientRect(&rcClient);
         // 枠線が完全に内側に描画されるように調整
-        rcClient.DeflateRect(1, 1); 
+        rcClient.DeflateRect(1, 1);
         memDC.Rectangle(rcClient);
 
         memDC.SelectObject(pOldBrush);
         memDC.SelectObject(pOldPen);
     }
-    // --- ▲▲▲ ここまで追加 ▲▲▲ ---
     dc.BitBlt(0, 0, clientRect.Width(), clientRect.Height(), &memDC, 0, 0, SRCCOPY);
     memDC.SelectObject(pOldBmp);
 }
 
-
 void CGridCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
-    // --- ▼▼▼ この行を追加 ▼▼▼ ---
     // このグリッドがクリックされたことを親ウィンドウに通知する
     GetParent()->PostMessage(WM_GRID_ACTIVATED, GetDlgCtrlID());
-    // --- ▲▲▲ この行を追加 ▲▲▲ ---
     SetFocus();
 
     CPoint cell = HitTest(point);
@@ -269,6 +341,14 @@ void CGridCtrl::OnLButtonDown(UINT nFlags, CPoint point)
     {
         DestroyInPlaceEdit(TRUE); // 前の編集を確定
         m_selectedCell = cell;
+        // 親ウィンドウに行選択の変更を通知する
+        NM_GRIDVIEW nm;
+        nm.hdr.hwndFrom = GetSafeHwnd();
+        nm.hdr.idFrom = GetDlgCtrlID();
+        nm.hdr.code = GCN_SELCHANGED;
+        nm.iRow = m_selectedCell.y;
+        nm.iCol = m_selectedCell.x;
+        GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
         Invalidate();
     }
 }
@@ -279,44 +359,241 @@ UINT CGridCtrl::OnGetDlgCode()
     return DLGC_WANTARROWS | DLGC_WANTCHARS;
 }
 
-
 void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
-    if (m_selectedCell.x == -1) return;
-    if (m_pEdit) return; //編集中はキー操作を無効
+    // 編集モードの場合は、すべてのキー操作を無効化
+    if (m_pEdit)
+    {
+        CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
+        return;
+    }
 
     switch (nChar)
     {
-    case VK_UP:    MoveSelection(0, -1); break;
-    case VK_DOWN:  MoveSelection(0, 1);  break;
-    case VK_LEFT:  MoveSelection(-1, 0); break;
-    case VK_RIGHT: MoveSelection(1, 0);  break;
-    case VK_F2: // F2キーで編集開始
+    case VK_UP:
+    case VK_DOWN:
+    case VK_LEFT:
+    case VK_RIGHT:
+    {
+        // --- 1. グリッド内に選択セルがない場合の処理 ---
+        if (m_selectedCell.x == -1)
+        {
+            // 内部に移動すべきセルがないため、どの方向キーが押されても
+            // 「境界に到達した」とみなし、親ウィンドウにナビゲーションを依頼します。
+            GetParent()->PostMessage(WM_GRID_NAV_BOUNDARY_HIT, (WPARAM)nChar, (LPARAM)GetDlgCtrlID());
+            return; // このキーに対する処理は完了
+        }
+
+        // --- 2. グリッド内に選択セルがある場合の処理 (既存のロジック) ---
+        BOOL bMoved = FALSE; // グリッド内で移動できたかどうかのフラグ
+        int dx = (nChar == VK_LEFT) ? -1 : (nChar == VK_RIGHT) ? 1
+                                                               : 0;
+        int dy = (nChar == VK_UP) ? -1 : (nChar == VK_DOWN) ? 1
+                                                            : 0;
+
+        CPoint searchCell = m_selectedCell;
+        while (TRUE)
+        {
+            searchCell.x += dx;
+            searchCell.y += dy;
+
+            // グリッドの範囲外に出たら探索終了
+            if (searchCell.x < 0 || searchCell.x >= m_nCols || searchCell.y < 0 || searchCell.y >= m_nRows)
+            {
+                break;
+            }
+
+            if (IsCellEditable(searchCell.y, searchCell.x))
+            {
+                // 移動先が見つかった場合
+                m_selectedCell = searchCell;
+                bMoved = TRUE;
+                break;
+            }
+        }
+
+        if (bMoved)
+        {
+            // 内部で移動できた場合：親に選択変更を通知し、再描画
+            NM_GRIDVIEW nm;
+            nm.hdr.hwndFrom = GetSafeHwnd();
+            nm.hdr.idFrom = GetDlgCtrlID();
+            nm.hdr.code = GCN_SELCHANGED;
+            nm.iRow = m_selectedCell.y;
+            nm.iCol = m_selectedCell.x;
+            GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
+            // 新しく選択されたセルが表示されるように、ビューをスクロールさせる
+            EnsureCellVisible(m_selectedCell.y, m_selectedCell.x);
+            Invalidate();
+        }
+        else
+        {
+            // 内部で移動できなかった（端に到達した）場合：親に通知
+            GetParent()->PostMessage(WM_GRID_NAV_BOUNDARY_HIT, (WPARAM)nChar, (LPARAM)GetDlgCtrlID());
+        }
+        break;
+    }
+
+    case VK_PRIOR: // Page Up
+    case VK_NEXT:  // Page Down
+    {
+        // セルが選択されていなければ何もしない
+        if (m_selectedCell.x == -1)
+        {
+            break;
+        }
+
+        int nStep = (nChar == VK_PRIOR) ? -MAX_VISIBLE_ROWS : MAX_VISIBLE_ROWS;
+        int nDirection = (nChar == VK_PRIOR) ? -1 : 1;
+
+        // 1. まず目標となる行を計算
+        int targetRow = m_selectedCell.y + nStep;
+        if (targetRow < 0)
+            targetRow = 0;
+        if (targetRow >= m_nRows)
+            targetRow = m_nRows - 1;
+
+        CPoint newSel(-1, -1);
+
+        // 2. 同じ列内で、目標地点から近い編集可能セルを探す
+        int searchRow = targetRow;
+        while (searchRow >= 0 && searchRow < m_nRows)
+        {
+            if (IsCellEditable(searchRow, m_selectedCell.x))
+            {
+                newSel.x = m_selectedCell.x;
+                newSel.y = searchRow;
+                break;
+            }
+            searchRow += nDirection; // PageUpなら上へ, PageDownなら下へ探索
+        }
+
+        // 3. もし同じ列に見つからなければ、一番端の編集可能セルに移動する
+        if (newSel.x == -1)
+        {
+            if (nChar == VK_PRIOR) // PageUpの場合は、一番最初の編集可能セルへ
+            {
+                for (int r = 0; r < m_nRows; ++r)
+                {
+                    for (int c = 0; c < m_nCols; ++c)
+                    {
+                        if (IsCellEditable(r, c))
+                        {
+                            newSel = CPoint(c, r);
+                            goto found; // 二重ループを抜ける
+                        }
+                    }
+                }
+            }
+            else // PageDownの場合は、一番最後の編集可能セルへ
+            {
+                for (int r = m_nRows - 1; r >= 0; --r)
+                {
+                    for (int c = m_nCols - 1; c >= 0; --c)
+                    {
+                        if (IsCellEditable(r, c))
+                        {
+                            newSel = CPoint(c, r);
+                            goto found; // 二重ループを抜ける
+                        }
+                    }
+                }
+            }
+        found:;
+        }
+
+        // 4. 移動先が見つかったら、選択を更新してスクロール
+        if (newSel.x != -1 && newSel != m_selectedCell)
+        {
+            m_selectedCell = newSel;
+
+            // 親ウィンドウに選択変更を通知
+            NM_GRIDVIEW nm;
+            nm.hdr.hwndFrom = GetSafeHwnd();
+            nm.hdr.idFrom = GetDlgCtrlID();
+            nm.hdr.code = GCN_SELCHANGED;
+            nm.iRow = m_selectedCell.y;
+            nm.iCol = m_selectedCell.x;
+            GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
+
+            // 新しく選択されたセルが表示されるようにスクロール
+            EnsureCellVisible(m_selectedCell.y, m_selectedCell.x);
+
+            Invalidate();
+        }
+        break;
+    }
+    case VK_F2:
     case VK_RETURN:
-        CreateInPlaceEdit();
+        // セルが選択されていれば編集開始を試みる
+        if (m_selectedCell.x != -1)
+        {
+            CreateInPlaceEdit();
+        }
+        break;
+
+    default:
+        CWnd::OnKeyDown(nChar, nRepCnt, nFlags);
         break;
     }
 }
 
-void CGridCtrl::OnSetFocus(CWnd* pOldWnd)
+void CGridCtrl::EnsureCellVisible(int nRow, int nCol)
+{
+    // スクロールバーがない場合は何もしない
+    if (m_nRows <= MAX_VISIBLE_ROWS)
+    {
+        return;
+    }
+
+    int newTopRow = m_nTopRow;
+
+    if (nRow < m_nTopRow)
+    {
+        // 選択セルが、現在表示されている領域よりも上にある場合
+        // -> 選択セルが一番上に表示されるようにスクロール
+        newTopRow = nRow;
+    }
+    else if (nRow >= m_nTopRow + MAX_VISIBLE_ROWS)
+    {
+        // 選択セルが、現在表示されている領域よりも下にある場合
+        // -> 選択セルが一番下に表示されるようにスクロール
+        newTopRow = nRow - MAX_VISIBLE_ROWS + 1;
+    }
+
+    // スクロール位置に変化があった場合のみ、実際のスクロール処理を実行
+    if (newTopRow != m_nTopRow)
+    {
+        // OnVScrollのロジックと同様の処理
+        int maxScrollPos = m_nRows - MAX_VISIBLE_ROWS;
+        if (newTopRow < 0)
+            newTopRow = 0;
+        if (newTopRow > maxScrollPos)
+            newTopRow = maxScrollPos;
+
+        m_nTopRow = newTopRow;
+
+        // スクロールバーのつまみの位置を更新
+        SetScrollPos(SB_VERT, m_nTopRow, TRUE);
+
+        // 再描画して、新しいスクロール位置のコンテンツを表示
+        Invalidate();
+    }
+}
+
+void CGridCtrl::OnSetFocus(CWnd *pOldWnd)
 {
     CWnd::OnSetFocus(pOldWnd);
     // 最初の入力可能セルを選択状態にする
     if (m_selectedCell.x == -1)
     {
-        MoveSelection(1,0); //仮。右に移動して最初のセルを探す
+        MoveSelection(1, 0); // 仮。右に移動して最初のセルを探す
     }
     Invalidate();
 }
-void CGridCtrl::OnKillFocus(CWnd* pNewWnd)
+void CGridCtrl::OnKillFocus(CWnd *pNewWnd)
 {
     CWnd::OnKillFocus(pNewWnd);
-
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
-    // ★                                                   ★
-    // ★             ↓↓↓ ここから修正 ↓↓↓             ★
-    // ★                                                   ★
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
     // 新しいフォーカスを受け取ったウィンドウ(pNewWnd)が、
     // インプレイスエディット(m_pEdit)自身である場合は、
@@ -333,34 +610,65 @@ void CGridCtrl::OnKillFocus(CWnd* pNewWnd)
     {
         DestroyInPlaceEdit(TRUE);
     }
-    
+
     Invalidate();
 }
 
-
-// --- ヘルパー関数 ---
-
+// GetCellRect: 論理的な行番号から、物理的な描画矩形を計算
 CRect CGridCtrl::GetCellRect(int nRow, int nCol) const
 {
-    if (nRow < 0 || nRow >= m_nRows || nCol < 0 || nCol >= m_nCols)
+    if (nRow < m_nTopRow || nRow >= m_nTopRow + MAX_VISIBLE_ROWS)
     {
-        return CRect(0,0,0,0);
+        return CRect(0, 0, 0, 0); // 画面外のセル
     }
 
     int left = 0;
     for (int i = 0; i < nCol; ++i)
-    {
         left += m_colWidths[i];
-    }
     int right = left + m_colWidths[nCol];
-    int top = nRow * m_nRowHeight;
+
+    // 物理的なY座標を計算
+    int top = (nRow - m_nTopRow) * m_nRowHeight;
     int bottom = top + m_nRowHeight;
 
     return CRect(left, top, right, bottom);
 }
 
+// HitTest: 物理的なY座標から、論理的な行番号を計算
+CPoint CGridCtrl::HitTest(const CPoint &point) const
+{
+    // point.yは物理的なクリック位置
+    int row = (point.y / m_nRowHeight) + m_nTopRow;
 
-// --- ▼▼▼ この関数をファイルの末尾などに追加 ▼▼▼ ---
+    CRect clientRect;
+    GetClientRect(&clientRect);
+    int cellWidth = 0;
+    for (int col = 0; col < m_nCols; ++col)
+    {
+        cellWidth += m_colWidths[col];
+        if (point.x < cellWidth)
+        {
+            if (row >= 0 && row < m_nRows)
+                return CPoint(col, row);
+            else
+                break;
+        }
+    }
+    return CPoint(-1, -1);
+}
+
+// GetRequiredHeight: コントロールの物理的な高さを返すように修正
+int CGridCtrl::GetRequiredHeight() const
+{
+    if (m_nRows == 0)
+    {
+        return 0; // まだグリッドがセットアップされていない場合
+    }
+    // 表示行数（最大10行）分の高さを返す
+    int nVisibleRows = min(m_nRows, MAX_VISIBLE_ROWS);
+    return nVisibleRows * m_nRowHeight;
+}
+
 int CGridCtrl::GetRequiredWidth() const
 {
     if (m_nCols == 0)
@@ -375,16 +683,7 @@ int CGridCtrl::GetRequiredWidth() const
     }
     return width;
 }
-// --- ▼▼▼ この関数をファイルの末尾などに追加 ▼▼▼ ---
-int CGridCtrl::GetRequiredHeight() const
-{
-    if (m_nRows == 0)
-    {
-        return 0; // まだグリッドがセットアップされていない場合
-    }
-    return m_nRows * m_nRowHeight;
-}
-// --- ▲▲▲ 追加 ▲▲▲ ---
+
 int CGridCtrl::GetCellIndex(int nRow, int nCol) const
 {
     if (nRow >= 0 && nRow < m_nRows && nCol >= 0 && nCol < m_nCols)
@@ -393,27 +692,16 @@ int CGridCtrl::GetCellIndex(int nRow, int nCol) const
     }
     return -1;
 }
-CPoint CGridCtrl::HitTest(const CPoint& point) const
-{
-    for (int row = 0; row < m_nRows; ++row)
-    {
-        for (int col = 0; col < m_nCols; ++col)
-        {
-            if (GetCellRect(row, col).PtInRect(point))
-            {
-                return CPoint(col, row);
-            }
-        }
-    }
-    return CPoint(-1, -1);
-}
 
 void CGridCtrl::CreateInPlaceEdit()
 {
-    if (m_pEdit) return;
-    if (m_selectedCell.x == -1) return;
+    if (m_pEdit)
+        return;
+    if (m_selectedCell.x == -1)
+        return;
     int index = GetCellIndex(m_selectedCell.y, m_selectedCell.x);
-    if (!m_cells[index].m_bEditable) return;
+    if (!m_cells[index].m_bEditable)
+        return;
 
     CRect rect = GetCellRect(m_selectedCell.y, m_selectedCell.x);
     rect.DeflateRect(1, 1); // 枠線にかぶらないように少し小さくする
@@ -424,7 +712,7 @@ void CGridCtrl::CreateInPlaceEdit()
     if (!m_pEdit->Create(WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL, rect, this, 1))
     {
         // 失敗した場合、デバッグ出力にエラーコードを表示する
-        TRACE(L"Failed to create InPlaceEdit control. Error: %d\n", GetLastError());
+        TRACE(_T("Failed to create InPlaceEdit control. Error: %d\n"), GetLastError());
         delete m_pEdit;
         m_pEdit = nullptr;
         return; // ウィンドウ生成に失敗したので、ここで処理を中断する
@@ -438,7 +726,8 @@ void CGridCtrl::CreateInPlaceEdit()
 
 void CGridCtrl::DestroyInPlaceEdit(BOOL bUpdate)
 {
-    if (!m_pEdit) return;
+    if (!m_pEdit)
+        return;
 
     if (bUpdate)
     {
@@ -450,7 +739,7 @@ void CGridCtrl::DestroyInPlaceEdit(BOOL bUpdate)
         // 親ウィンドウに変更を通知
         GetParent()->PostMessage(WM_GRID_CELL_CHANGED, GetDlgCtrlID(), MAKELPARAM(m_selectedCell.y, m_selectedCell.x));
     }
-    
+
     m_pEdit->DestroyWindow();
     delete m_pEdit;
     m_pEdit = nullptr;
@@ -461,8 +750,10 @@ void CGridCtrl::DestroyInPlaceEdit(BOOL bUpdate)
 
 void CGridCtrl::MoveSelection(int dx, int dy)
 {
-    if (m_pEdit) return; // 編集中は移動しない
-    if (m_selectedCell.x == -1) return; // 未選択状態なら何もしない
+    if (m_pEdit)
+        return; // 編集中は移動しない
+    if (m_selectedCell.x == -1)
+        return; // 未選択状態なら何もしない
 
     CPoint currentCell = m_selectedCell;
 
@@ -476,6 +767,15 @@ void CGridCtrl::MoveSelection(int dx, int dy)
             if (m_cells[index].m_bEditable)
             {
                 m_selectedCell = CPoint(newCol, currentCell.y);
+                // 親ウィンドウに行選択の変更を通知する
+                NM_GRIDVIEW nm;
+                nm.hdr.hwndFrom = GetSafeHwnd();
+                nm.hdr.idFrom = GetDlgCtrlID();
+                nm.hdr.code = GCN_SELCHANGED;
+                nm.iRow = m_selectedCell.y;
+                nm.iCol = m_selectedCell.x;
+                GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
+
                 Invalidate();
                 return; // 見つかったので選択を更新して終了
             }
@@ -493,19 +793,26 @@ void CGridCtrl::MoveSelection(int dx, int dy)
             if (m_cells[index].m_bEditable)
             {
                 m_selectedCell = CPoint(currentCell.x, newRow);
+                // 親ウィンドウに行選択の変更を通知する
+                NM_GRIDVIEW nm;
+                nm.hdr.hwndFrom = GetSafeHwnd();
+                nm.hdr.idFrom = GetDlgCtrlID();
+                nm.hdr.code = GCN_SELCHANGED;
+                nm.iRow = m_selectedCell.y;
+                nm.iCol = m_selectedCell.x;
+                GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
+
                 Invalidate();
                 return; // 見つかったので選択を更新して終了
             }
             newRow += dy; // 見つからなければ、さらに同じ方向へ探索
         }
     }
-    
+
     // ここに到達した場合、指定された方向に編集可能なセルは見つからなかった。
     // 何もせずに関数を終了する。
 }
 
-
-// --- ▼▼▼ この関数をまるごと追加 ▼▼▼ ---
 void CGridCtrl::SetActive(BOOL bActive)
 {
     if (m_bIsActive == bActive)
@@ -515,17 +822,122 @@ void CGridCtrl::SetActive(BOOL bActive)
 
     m_bIsActive = bActive;
 
-    // 非アクティブに設定された場合は、セルの選択状態と編集状態を解除する
-    if (!bActive)
+    if (bActive)
     {
+        // グリッドがアクティブになった際の処理
+        // もし、まだセルが何も選択されていない場合
+        if (m_selectedCell.x == -1)
+        {
+            // 編集可能な最初のセルを探して、自動的に選択状態にする
+            bool bFound = false;
+            for (int row = 0; row < m_nRows && !bFound; ++row)
+            {
+                for (int col = 0; col < m_nCols && !bFound; ++col)
+                {
+                    if (IsCellEditable(row, col))
+                    {
+                        m_selectedCell = CPoint(col, row);
+                        bFound = true; // 見つかったのでループを抜ける
+                    }
+                }
+            }
+
+            // 編集可能なセルが見つかって自動選択した場合、親に選択変更を通知する
+            if (bFound)
+            {
+                NM_GRIDVIEW nm;
+                nm.hdr.hwndFrom = GetSafeHwnd();
+                nm.hdr.idFrom = GetDlgCtrlID();
+                nm.hdr.code = GCN_SELCHANGED;
+                nm.iRow = m_selectedCell.y;
+                nm.iCol = m_selectedCell.x;
+                GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
+            }
+        }
+    }
+    else
+    {
+        // 非アクティブにされた場合、セルの選択状態と編集状態を解除する
         if (m_pEdit)
         {
-            // 編集中の内容を破棄して終了
             DestroyInPlaceEdit(FALSE);
         }
         m_selectedCell = CPoint(-1, -1);
     }
-    
+
     Invalidate(); // 再描画を促す
 }
-// --- ▲▲▲ この関数をまるごと追加 ▲▲▲ ---
+
+void CGridCtrl::UpdateScrollbar()
+{
+    if (GetSafeHwnd() == nullptr)
+        return;
+
+    if (m_nRows > MAX_VISIBLE_ROWS)
+    {
+        SCROLLINFO si;
+        si.cbSize = sizeof(SCROLLINFO);
+        si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
+        si.nMin = 0;
+        si.nMax = m_nRows - 1;
+        si.nPage = MAX_VISIBLE_ROWS;
+        si.nPos = m_nTopRow;
+        SetScrollInfo(SB_VERT, &si, TRUE);
+        ShowScrollBar(SB_VERT, TRUE);
+    }
+    else
+    {
+        ShowScrollBar(SB_VERT, FALSE);
+    }
+}
+
+void CGridCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
+{
+    int newTopRow = m_nTopRow;
+
+    switch (nSBCode)
+    {
+    case SB_LINEUP:
+        newTopRow--;
+        break;
+    case SB_LINEDOWN:
+        newTopRow++;
+        break;
+    case SB_PAGEUP:
+        newTopRow -= MAX_VISIBLE_ROWS;
+        break;
+    case SB_PAGEDOWN:
+        newTopRow += MAX_VISIBLE_ROWS;
+        break;
+    case SB_THUMBTRACK:
+        newTopRow = nPos;
+        break;
+    }
+
+    // スクロール可能な最大位置を計算
+    int maxScrollPos = m_nRows - MAX_VISIBLE_ROWS;
+    if (newTopRow < 0)
+        newTopRow = 0;
+    if (newTopRow > maxScrollPos)
+        newTopRow = maxScrollPos;
+    if (newTopRow == m_nTopRow)
+        return;
+
+    m_nTopRow = newTopRow;
+    SetScrollPos(SB_VERT, m_nTopRow, TRUE);
+    Invalidate(); // スクロールしたので全体を再描画
+
+    CWnd::OnVScroll(nSBCode, nPos, pScrollBar);
+}
+
+BOOL CGridCtrl::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
+{
+    if (m_nRows > MAX_VISIBLE_ROWS)
+    {
+        if (zDelta > 0)
+            OnVScroll(SB_LINEUP, 0, nullptr);
+        else
+            OnVScroll(SB_LINEDOWN, 0, nullptr);
+    }
+    return CWnd::OnMouseWheel(nFlags, zDelta, pt);
+}

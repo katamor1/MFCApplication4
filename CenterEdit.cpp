@@ -13,10 +13,10 @@ IMPLEMENT_DYNAMIC(CCenterEdit, CEdit)
 CCenterEdit::CCenterEdit()
 {
 	// ブラシと色の初期化
-	m_brushFocus.CreateSolidBrush(RGB(255, 255, 0));  // 黄色
+	m_brushFocus.CreateSolidBrush(RGB(255, 255, 0));   // 黄色
 	m_brushNoFocus.CreateSolidBrush(RGB(0, 255, 255)); // 白色
-	m_colorTextFocus = RGB(255, 0, 0);     // 赤色
-	m_colorTextNoFocus = RGB(0, 0, 0);       // 黒色
+	m_colorTextFocus = RGB(255, 0, 0);				   // 赤色
+	m_colorTextNoFocus = RGB(0, 0, 0);				   // 黒色
 }
 
 CCenterEdit::~CCenterEdit()
@@ -24,16 +24,15 @@ CCenterEdit::~CCenterEdit()
 }
 
 BEGIN_MESSAGE_MAP(CCenterEdit, CEdit)
-	// ON_WM_CTLCOLOR_REFLECT() は、親ウィンドウに送られるWM_CTLCOLORメッセージを
-	// このコントロール自身で処理するためのマクロです。これにより、コントロールが自己完結します。
-	ON_WM_CTLCOLOR_REFLECT()
-	ON_WM_SETFOCUS()
-	ON_WM_KILLFOCUS()
-	ON_WM_SIZE()
-	ON_CONTROL_REFLECT(EN_CHANGE, &CCenterEdit::OnEnChange)
-	ON_MESSAGE(WM_APP_POST_INIT, &CCenterEdit::OnPostInit)
+// ON_WM_CTLCOLOR_REFLECT() は、親ウィンドウに送られるWM_CTLCOLORメッセージを
+// このコントロール自身で処理するためのマクロです。これにより、コントロールが自己完結します。
+ON_WM_CTLCOLOR_REFLECT()
+ON_WM_SETFOCUS()
+ON_WM_KILLFOCUS()
+ON_WM_SIZE()
+ON_CONTROL_REFLECT(EN_CHANGE, &CCenterEdit::OnEnChange)
+ON_MESSAGE(WM_APP_POST_INIT, &CCenterEdit::OnPostInit)
 END_MESSAGE_MAP()
-
 
 // CCenterEdit メッセージ ハンドラー
 
@@ -49,18 +48,17 @@ void CCenterEdit::PreSubclassWindow()
 	CEdit::PreSubclassWindow();
 }
 
-
-BOOL CCenterEdit::PreTranslateMessage(MSG* pMsg)
+BOOL CCenterEdit::PreTranslateMessage(MSG *pMsg)
 {
 	// ES_MULTILINE使用時にEnterキーで改行されるのを防ぐ
 	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN)
 	{
 		GetParent()->SetFocus(); // 親ウィンドウにフォーカスを移動
-		return TRUE; // メッセージを破棄
+		return TRUE;			 // メッセージを破棄
 	}
 	return CEdit::PreTranslateMessage(pMsg);
 }
-void CCenterEdit::OnSetFocus(CWnd* pOldWnd)
+void CCenterEdit::OnSetFocus(CWnd *pOldWnd)
 {
 	CEdit::OnSetFocus(pOldWnd);
 
@@ -87,7 +85,7 @@ void CCenterEdit::OnSetFocus(CWnd* pOldWnd)
 	Invalidate(); // 再描画を促す
 }
 
-void CCenterEdit::OnKillFocus(CWnd* pNewWnd)
+void CCenterEdit::OnKillFocus(CWnd *pNewWnd)
 {
 	CEdit::OnKillFocus(pNewWnd);
 	Invalidate(); // 再描画を促す
@@ -110,11 +108,11 @@ void CCenterEdit::UpdateTextPosition()
 		return;
 	}
 
-	CDC* pDC = GetDC();
+	CDC *pDC = GetDC();
 	if (pDC)
 	{
-		CFont* pFont = GetFont();
-		CFont* pOldFont = pDC->SelectObject(pFont);
+		CFont *pFont = GetFont();
+		CFont *pOldFont = pDC->SelectObject(pFont);
 		TEXTMETRIC tm;
 		pDC->GetTextMetrics(&tm);
 		pDC->SelectObject(pOldFont);
@@ -135,9 +133,7 @@ void CCenterEdit::UpdateTextPosition()
 
 void CCenterEdit::OnSize(UINT nType, int cx, int cy)
 {
-	// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 	// 初回のリサイズ時のみ、自分自身にメッセージをポストする
-	// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 	if (m_bIsFirstTimeInit && cx > 0 && cy > 0)
 	{
 		m_bIsFirstTimeInit = false;
@@ -150,21 +146,18 @@ void CCenterEdit::OnSize(UINT nType, int cx, int cy)
 	Invalidate();
 }
 
-
 LRESULT CCenterEdit::OnPostInit(WPARAM wParam, LPARAM lParam)
 {
-	// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 	// すべての初期化が終わった、完璧なタイミングで呼ばれるハンドラ
-	// ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 	UpdateTextPosition();
 	Invalidate();
 	return 0;
 }
-HBRUSH CCenterEdit::CtlColor(CDC* pDC, UINT nCtlColor)
+HBRUSH CCenterEdit::CtlColor(CDC *pDC, UINT nCtlColor)
 {
 	// このハンドラは、DefWindowProcが背景を描画する際に使用するブラシを返す
 	// 役割だけに限定する。文字色の設定はOnPaintで行う。
-	CWnd* pFocusWnd = GetFocus();
+	CWnd *pFocusWnd = GetFocus();
 	bool bHasFocus = (pFocusWnd && pFocusWnd->GetSafeHwnd() == GetSafeHwnd());
 
 	if (bHasFocus)

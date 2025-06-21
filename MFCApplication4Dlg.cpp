@@ -10,39 +10,39 @@
 #include "CenterEdit.h"
 #include "CMyDialog.h"
 #include "CMyDialog2.h"
+#include "CMyDialog3.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
 #endif
 
-
 // CMFCApplication4Dlg ダイアログ
 
-
-
-CMFCApplication4Dlg::CMFCApplication4Dlg(CWnd* pParent /*=nullptr*/)
+CMFCApplication4Dlg::CMFCApplication4Dlg(CWnd *pParent /*=nullptr*/)
 	: CDialogEx(IDD_MFCAPPLICATION4_DIALOG, pParent)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
-
 }
 
-void CMFCApplication4Dlg::DoDataExchange(CDataExchange* pDX)
+void CMFCApplication4Dlg::DoDataExchange(CDataExchange *pDX)
 {
 	CDialogEx::DoDataExchange(pDX);
 }
 
 BEGIN_MESSAGE_MAP(CMFCApplication4Dlg, CDialogEx)
-	ON_WM_PAINT()
-	ON_WM_QUERYDRAGICON()
-	// カスタムメッセージとハンドラ関数をマッピング
-	ON_MESSAGE(WM_SHOW_VIEW2, &CMFCApplication4Dlg::OnShowView2)
-	ON_WM_SIZE()
-	ON_BN_CLICKED(IDC_BUTTON1, &CMFCApplication4Dlg::OnBnClickedButton1)
-	ON_WM_SYSCOMMAND()
-	ON_BN_CLICKED(IDC_BUTTON2, &CMFCApplication4Dlg::OnBnClickedButton2)
-    ON_WM_TIMER()
-    ON_MESSAGE(WM_APP_SHOW_OPERATION_STATUS, &CMFCApplication4Dlg::OnShowOperationStatus)
+ON_WM_PAINT()
+ON_WM_QUERYDRAGICON()
+// カスタムメッセージとハンドラ関数をマッピング
+ON_MESSAGE(WM_SHOW_VIEW2, &CMFCApplication4Dlg::OnShowView2)
+ON_WM_SIZE()
+ON_BN_CLICKED(IDC_BUTTON1, &CMFCApplication4Dlg::OnBnClickedButton1)
+ON_WM_SYSCOMMAND()
+ON_BN_CLICKED(IDC_BUTTON2, &CMFCApplication4Dlg::OnBnClickedButton2)
+ON_WM_TIMER()
+ON_MESSAGE(WM_APP_SHOW_OPERATION_STATUS, &CMFCApplication4Dlg::OnShowOperationStatus)
+ON_BN_CLICKED(IDC_BUTTON3, &CMFCApplication4Dlg::OnBnClickedButton3)
+ON_MESSAGE(WM_EXECUTE_FUNCTION, &CMFCApplication4Dlg::OnExecuteFunction)
+ON_BN_CLICKED(IDOK, &CMFCApplication4Dlg::OnBnClickedOk)
 END_MESSAGE_MAP()
 
 // ワーカースレッドから通知を受けてView2を作成・表示する
@@ -58,11 +58,12 @@ LRESULT CMFCApplication4Dlg::OnShowView2(WPARAM wParam, LPARAM lParam)
 
 	// View1 (プライマリビュー) のウィンドウ矩形を取得
 	CRect rectView1;
-	if (!m_pView1) return -1; // View1が見つからない場合はエラー
+	if (!m_pView1)
+		return -1; // View1が見つからない場合はエラー
 
 	m_pView1->GetClientRect(&rectView1);
 	m_pView1->ClientToScreen(&rectView1); // スクリーン座標に変換
-	ScreenToClient(&rectView1);       // MainFrameのクライアント座標に変換
+	ScreenToClient(&rectView1);			  // MainFrameのクライアント座標に変換
 
 	// View2をView1の右半分に重ねるための座標を計算
 	CRect rectView2;
@@ -82,14 +83,11 @@ LRESULT CMFCApplication4Dlg::OnShowView2(WPARAM wParam, LPARAM lParam)
 	// View2を正しい位置に表示し、最前面に持ってくる
 	m_pView2->SetWindowPos(m_pView1, rectView2.left, rectView2.top, rectView2.Width(), rectView2.Height(), SWP_SHOWWINDOW);
 	m_pView2->Invalidate();
-
-	// ★★★ View2を表示した直後にクリッピングを適用 ★★★
 	UpdateLayoutAndClipping();
 
 	return 0;
 }
 
-// ★★★ CMainFrame::OnSizeハンドラの実装を追加 ★★★
 void CMFCApplication4Dlg::OnSize(UINT nType, int cx, int cy)
 {
 	CDialogEx::OnSize(nType, cx, cy);
@@ -102,11 +100,12 @@ void CMFCApplication4Dlg::OnSize(UINT nType, int cx, int cy)
 		UpdateLayoutAndClipping();
 	}
 }
-// ★★★ UpdateLayoutAndClipping関数の実装を追加 ★★★
 void CMFCApplication4Dlg::UpdateLayoutAndClipping()
 {
-	if (!m_pView1 || !::IsWindow(m_pView1->GetSafeHwnd())) return;
-	if (!m_pView2 || !::IsWindow(m_pView2->GetSafeHwnd())) return;
+	if (!m_pView1 || !::IsWindow(m_pView1->GetSafeHwnd()))
+		return;
+	if (!m_pView2 || !::IsWindow(m_pView2->GetSafeHwnd()))
+		return;
 
 	// 1. 各ビューのクライアント領域をスクリーン座標で取得
 	CRect rectView1Screen, rectView2Screen;
@@ -137,7 +136,6 @@ void CMFCApplication4Dlg::UpdateLayoutAndClipping()
 	m_pView2->SetWindowRgn((HRGN)rgnView2.Detach(), TRUE);
 }
 
-
 // CMFCApplication4Dlg メッセージ ハンドラー
 
 BOOL CMFCApplication4Dlg::OnInitDialog()
@@ -146,28 +144,26 @@ BOOL CMFCApplication4Dlg::OnInitDialog()
 
 	// このダイアログのアイコンを設定します。アプリケーションのメイン ウィンドウがダイアログでない場合、
 	//  Framework は、この設定を自動的に行います。
-	SetIcon(m_hIcon, TRUE);			// 大きいアイコンの設定
-	SetIcon(m_hIcon, FALSE);		// 小さいアイコンの設定
+	SetIcon(m_hIcon, TRUE);	 // 大きいアイコンの設定
+	SetIcon(m_hIcon, FALSE); // 小さいアイコンの設定
 
 	m_editCustom1 = new CCenterEdit();
 	CRect rect1(50, 50, 200, 200); // ダイアログ内の位置とサイズを指定
 	m_editCustom1->Create(WS_CHILD | WS_VISIBLE, rect1, this, 1000);
 	m_editCustom1->ShowWindow(TRUE);
 	m_editCustom1->SetWindowTextW(_T("1234")); // 初期値を設定
-	m_editCustom1->SetFont(GetFont()); // フォントをダイアログのフォントに設定
-	m_editCustom1->SetLimitText(4); // 入力文字数を4文字に制限
+	m_editCustom1->SetFont(GetFont());		   // フォントをダイアログのフォントに設定
+	m_editCustom1->SetLimitText(4);			   // 入力文字数を4文字に制限
 	m_editCustom1->SetWindowPos(nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	// TODO: 初期化をここに追加します。
 
 	m_editCustom2 = new CCenterEdit();
 	CRect rect2(250, 50, 400, 200); // ダイアログ内の位置とサイズを指定
 	m_editCustom2->Create(WS_CHILD | WS_VISIBLE, rect2, this, 1001);
 	m_editCustom2->ShowWindow(TRUE);
 	m_editCustom2->SetWindowTextW(_T("5678")); // 初期値を設定
-	m_editCustom2->SetFont(GetFont()); // フォントをダイアログのフォントに設定
-	m_editCustom2->SetLimitText(4); // 入力文字数を4文字に制限
+	m_editCustom2->SetFont(GetFont());		   // フォントをダイアログのフォントに設定
+	m_editCustom2->SetLimitText(4);			   // 入力文字数を4文字に制限
 	m_editCustom2->SetWindowPos(nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-	// TODO: 初期化をここに追加します。
 
 	CRect rectView1(450, 50, 600, 200); // ダイアログ内の位置とサイズを指定
 	m_pView1 = new CView1();
@@ -179,58 +175,79 @@ BOOL CMFCApplication4Dlg::OnInitDialog()
 	m_pView1->SetWindowPos(&wndTop, rectView1.left, rectView1.top, rectView1.Width(), rectView1.Height(), SWP_SHOWWINDOW);
 	m_pView1->Invalidate();
 
-	
 	m_editCustom3 = new CMyEdit();
 	CRect rect3(250, 250, 400, 300); // ダイアログ内の位置とサイズを指定
 	m_editCustom3->Create(WS_CHILD | WS_VISIBLE, rect3, this, 1010);
 	m_editCustom3->ShowWindow(TRUE);
 	m_editCustom3->SetWindowTextW(_T("AAAA")); // 初期値を設定
-	m_editCustom3->SetFont(GetFont()); // フォントをダイアログのフォントに設定
+	m_editCustom3->SetFont(GetFont());		   // フォントをダイアログのフォントに設定
 
-    // --- ▼▼▼ この行を追加 ▼▼▼ ---
-    // ダイアログの初期タイトルを保存
-    GetWindowText(m_strOriginalTitle);
-    // --- ▲▲▲ 追加 ▲▲▲ ---
-	return TRUE;  // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
+	// ダイアログの初期タイトルを保存
+	GetWindowText(m_strOriginalTitle);
+	return TRUE; // フォーカスをコントロールに設定した場合を除き、TRUE を返します。
 }
 
+void CMFCApplication4Dlg::OnOK()
+{
+	// この関数をオーバーライドし、中身を空にします。
+	// 基底クラスの CDialogEx::OnOK() を呼び出さないことで、
+	// Enterキーを押してもダイアログが閉じなくなります。
+}
 
+BOOL CMFCApplication4Dlg::PreTranslateMessage(MSG *pMsg)
+{
+	// Escapeキーが押された場合、メッセージをここで処理済み（TRUE）とし、
+	// それ以上伝搬させないことで、ダイアログが閉じるのを防ぎます。
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
+	{
+		return TRUE; // メッセージを「食べた」ことにして、何もしない
+	}
+
+	// Enterキーが押された場合も同様に無効化
+	if (pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_RETURN)
+	{
+		return TRUE; // Enterキーもここで握りつぶす
+	}
+
+	// その他のメッセージは、デフォルトの処理に任せます。
+	return CDialogEx::PreTranslateMessage(pMsg);
+}
 // アプリケーションクラスから通知メッセージを受け取るハンドラ
 LRESULT CMFCApplication4Dlg::OnShowOperationStatus(WPARAM wParam, LPARAM lParam)
 {
-    // 現在のタイトルを取得
-    CString strCurrentTitle;
-    GetWindowText(strCurrentTitle);
+	// 現在のタイトルを取得
+	CString strCurrentTitle;
+	GetWindowText(strCurrentTitle);
 
-    // もしタイトルがまだ「操作中」でなければ、現在のタイトルをオリジナルとして保存更新
-    if (strCurrentTitle != _T("操作中"))
-    {
-        m_strOriginalTitle = strCurrentTitle;
-    }
+	// もしタイトルがまだ「操作中」でなければ、現在のタイトルをオリジナルとして保存更新
+	if (strCurrentTitle != _T("操作中"))
+	{
+		m_strOriginalTitle = strCurrentTitle;
+	}
 
-    // タイトルを「操作中」に変更
-    SetWindowText(_T("操作中"));
+	// タイトルを「操作中」に変更
+	SetWindowText(_T("操作中"));
 
-    // 3秒タイマーを開始（またはリセット）する
-    SetTimer(ID_TITLE_TIMER, 3000, NULL);
+	// 3秒タイマーを開始（またはリセット）する
+	SetTimer(ID_TITLE_TIMER, 3000, NULL);
 
-    return 0;
+	return 0;
 }
 
 // タイマーイベントを処理するハンドラ
 void CMFCApplication4Dlg::OnTimer(UINT_PTR nIDEvent)
 {
-    // 今回設定したタイマーかどうかをIDで確認
-    if (nIDEvent == ID_TITLE_TIMER)
-    {
-        // タイマーを停止（一回限りのタイマーのため）
-        KillTimer(ID_TITLE_TIMER);
-        
-        // タイトルを保存しておいた元の文字列に戻す
-        SetWindowText(m_strOriginalTitle);
-    }
+	// 今回設定したタイマーかどうかをIDで確認
+	if (nIDEvent == ID_TITLE_TIMER)
+	{
+		// タイマーを停止（一回限りのタイマーのため）
+		KillTimer(ID_TITLE_TIMER);
 
-    CDialogEx::OnTimer(nIDEvent);
+		// タイトルを保存しておいた元の文字列に戻す
+		SetWindowText(m_strOriginalTitle);
+	}
+
+	CDialogEx::OnTimer(nIDEvent);
 }
 // ダイアログに最小化ボタンを追加する場合、アイコンを描画するための
 //  下のコードが必要です。ドキュメント/ビュー モデルを使う MFC アプリケーションの場合、
@@ -268,6 +285,19 @@ HCURSOR CMFCApplication4Dlg::OnQueryDragIcon()
 	return static_cast<HCURSOR>(m_hIcon);
 }
 
+LRESULT CMFCApplication4Dlg::OnExecuteFunction(WPARAM wParam, LPARAM lParam)
+{
+	// wParamから「n」の値、lParamから「k」の値を取得
+	int n = (int)wParam;
+	int k = (int)lParam;
+
+	// メッセージボックスに表示する文字列を "F(n-k)" の形式のみにします
+	CString msg;
+	msg.Format(_T("機能 F(%d-%d) が実行されました。"), n, k);
+	AfxMessageBox(msg);
+
+	return 0;
+}
 
 void CMFCApplication4Dlg::OnBnClickedButton1()
 {
@@ -294,4 +324,15 @@ void CMFCApplication4Dlg::OnBnClickedButton2()
 {
 	CMyDialog2 dlg;
 	dlg.DoModal(); // モーダルダイアログとして表示
+}
+
+void CMFCApplication4Dlg::OnBnClickedButton3()
+{
+	CMyDialog3 dlg;
+	dlg.DoModal(); // モーダルダイアログとして表示
+}
+
+void CMFCApplication4Dlg::OnBnClickedOk()
+{
+	EndDialog(IDOK);
 }

@@ -5,19 +5,18 @@
 #include "MFCApplication4.h"
 #include "View1.h"
 
-
 // View1
 IMPLEMENT_DYNCREATE(CView1, CView)
 
 BEGIN_MESSAGE_MAP(CView1, CView)
-	ON_WM_DESTROY()
+ON_WM_DESTROY()
 END_MESSAGE_MAP()
 
 // ワーカースレッド関数
 UINT CView1::WorkerThreadProc(LPVOID pParam)
 {
 	static bool firstTime = true;
-	CView1* pView = static_cast<CView1*>(pParam);
+	CView1 *pView = static_cast<CView1 *>(pParam);
 	while (pView)
 	{
 		// --- 「条件A」を監視するループ ---
@@ -44,16 +43,12 @@ UINT CView1::WorkerThreadProc(LPVOID pParam)
 
 			TRACE("Worker thread finished its job. Exiting.\n");
 			firstTime = false; // 初回のみ処理を行う
-
 		}
 		Sleep(1000);
-
 	}
 
 	return 1; // エラー
-
 }
-
 
 void CView1::OnDestroy()
 {
@@ -75,17 +70,17 @@ void CView1::OnDestroy()
 	CView::OnDestroy();
 }
 
-void CView1::OnDraw(CDC* pDC)
+void CView1::OnDraw(CDC *pDC)
 {
 	CRect rectClient;
 	GetClientRect(&rectClient);
-	pDC->SetBkColor(RGB(0xDD,0x88,0x11));
+	pDC->SetBkColor(RGB(0xDD, 0x88, 0x11));
 	CBrush brush;
 	brush.CreateSolidBrush(RGB(0xDD, 0x88, 0x11));
 
 	pDC->FillRect(rectClient, &brush);
 	// ... (CView1の描画処理)
-	if (m_editCustom1==nullptr)
+	if (m_editCustom1 == nullptr)
 	{
 
 		m_editCustom1 = new CCenterEdit();
@@ -93,8 +88,8 @@ void CView1::OnDraw(CDC* pDC)
 		m_editCustom1->Create(WS_CHILD | WS_VISIBLE, rect1, this, 1003);
 		m_editCustom1->ShowWindow(TRUE);
 		m_editCustom1->SetWindowTextW(_T("1234")); // 初期値を設定
-		m_editCustom1->SetFont(GetFont()); // フォントをダイアログのフォントに設定
-		m_editCustom1->SetLimitText(4); // 入力文字数を4文字に制限
+		m_editCustom1->SetFont(GetFont());		   // フォントをダイアログのフォントに設定
+		m_editCustom1->SetLimitText(4);			   // 入力文字数を4文字に制限
 		m_editCustom1->SetWindowPos(nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	}
 	if (m_editCustom2 == nullptr)
@@ -105,15 +100,13 @@ void CView1::OnDraw(CDC* pDC)
 		m_editCustom2->Create(WS_CHILD | WS_VISIBLE, rect1, this, 1005);
 		m_editCustom2->ShowWindow(TRUE);
 		m_editCustom2->SetWindowTextW(_T("5678")); // 初期値を設定
-		m_editCustom2->SetFont(GetFont()); // フォントをダイアログのフォントに設定
-		m_editCustom2->SetLimitText(4); // 入力文字数を4文字に制限
+		m_editCustom2->SetFont(GetFont());		   // フォントをダイアログのフォントに設定
+		m_editCustom2->SetLimitText(4);			   // 入力文字数を4文字に制限
 		m_editCustom2->SetWindowPos(nullptr, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
 	}
 }
 
-
-// ★★★ PreCreateWindow関数の実装をここに追加 ★★★
-BOOL CView1::PreCreateWindow(CREATESTRUCT& cs)
+BOOL CView1::PreCreateWindow(CREATESTRUCT &cs)
 {
 	// まず基底クラスの関数を呼び出すのが作法です
 	if (!CView::PreCreateWindow(cs))
@@ -136,7 +129,7 @@ void CView1::AssertValid() const
 }
 
 #ifndef _WIN32_WCE
-void CView1::Dump(CDumpContext& dc) const
+void CView1::Dump(CDumpContext &dc) const
 {
 	CView::Dump(dc);
 }

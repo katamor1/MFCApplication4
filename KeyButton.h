@@ -14,11 +14,11 @@ public:
     CKeyButton();
     virtual ~CKeyButton();
 
-    void SetKeyInfo(CSoftwareKeyboardDlg* pParent, const KEY_INFO* pKeyInfo);
+    void SetKeyInfo(CSoftwareKeyboardDlg *pParent, const KEY_INFO *pKeyInfo);
 
 protected:
-    const KEY_INFO* m_pKeyInfo;
-    CSoftwareKeyboardDlg* m_pParentDlg; // 親ダイアログのポインタ
+    const KEY_INFO *m_pKeyInfo;
+    CSoftwareKeyboardDlg *m_pParentDlg; // 親ダイアログのポインタ
 
     virtual void DrawItem(LPDRAWITEMSTRUCT lpDrawItemStruct);
 

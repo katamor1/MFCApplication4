@@ -10,4 +10,4 @@
 // プリコンパイルするヘッダーをここに追加します
 #include "framework.h"
 
-#endif //PCH_H
+#endif // PCH_H

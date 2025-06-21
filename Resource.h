@@ -2,21 +2,42 @@
 // Microsoft Visual C++ で生成されたインクルード ファイル。
 // MFCApplication4.rc で使用
 //
-#define IDD_MFCAPPLICATION4_DIALOG      102
-#define IDD_CMyDialog                   103
-#define IDD_CMyDialog2                  104
-#define IDR_MAINFRAME                   128
-#define IDC_BUTTON1                     1000
-#define IDC_BUTTON2                     1002
-#define IDD_SW_KEYBOARD                 1033
+#define IDD_MFCAPPLICATION4_DIALOG 102
+#define IDD_CMyDialog 103
+#define IDD_CMyDialog2 104
+#define IDD_MyDialog3 105
+#define IDR_MAINFRAME 128
+#define IDC_BUTTON1 1000
+#define IDC_BUTTON2 1002
+#define IDC_BUTTON3 1003
+#define IDD_SW_KEYBOARD 1033
+#define IDC_GRID_CTRL 1034
+#define IDC_BTN_FUNC_BASE 1035
+#define IDC_BTN_FUNC1 1035
+#define IDC_BTN_FUNC2 1036
+#define IDC_BTN_FUNC3 1037
+#define IDC_BTN_FUNC4 1038
+#define IDC_BTN_FUNC5 1039
+#define IDC_BTN_FUNC6 1040
+#define IDC_BTN_FUNC7 1041
+#define IDC_BTN_FUNC8 1042
+#define IDC_BTN_FUNC9 1043
+#define IDC_BTN_FUNC10 1044
+#define IDC_BTN_FUNC11 1045
+#define IDC_BTN_FUNC12 1046
+#define IDC_BTN_FUNC13 1047
+#define IDC_BTN_FUNC14 1048
+#define IDC_BTN_FUNC15 1049
+#define IDC_BTN_FUNC16 1050
+#define IDC_BTN_NEXTPAGE 1051
 
 // Next default values for new objects
-// 
+//
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        136
-#define _APS_NEXT_COMMAND_VALUE         32771
-#define _APS_NEXT_CONTROL_VALUE         1003
-#define _APS_NEXT_SYMED_VALUE           105
+#define _APS_NEXT_RESOURCE_VALUE 136
+#define _APS_NEXT_COMMAND_VALUE 32771
+#define _APS_NEXT_CONTROL_VALUE 1004
+#define _APS_NEXT_SYMED_VALUE 106
 #endif
 #endif
