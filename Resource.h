@@ -30,6 +30,8 @@
 #define IDC_BTN_FUNC15 1049
 #define IDC_BTN_FUNC16 1050
 #define IDC_BTN_NEXTPAGE 1051
+#define IDC_GRID_PLACEHOLDER 1052
+#define IDC_CUSTOM_VSCROLL 1053
 
 // Next default values for new objects
 //

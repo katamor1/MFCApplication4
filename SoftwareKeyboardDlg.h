@@ -1,4 +1,11 @@
-﻿// SoftwareKeyboardDlg.h
+﻿/**
+ * @file SoftwareKeyboardDlg.h
+ * @brief ソフトウェアキーボードダイアログのクラス宣言
+ * @author C++/MFCコーディング (AI)
+ * @date 2025/06/22
+ * @details このファイルは、マウスで文字入力を行うためのソフトウェアキーボードの
+ * メインダイアログクラス CSoftwareKeyboardDlg の宣言を含みます。
+ */
 #pragma once
 
 #include "KeyDefine.h"
@@ -6,65 +13,98 @@
 #include <vector>
 #include "Resource.h"
 
-class CEdit; // 前方宣言
+class CEdit; // CEditクラスの前方宣言
 
+/**
+ * @class CSoftwareKeyboardDlg
+ * @brief ソフトウェアキーボードのダイアログクラス
+ * @details CDialogExを継承し、キーの動的生成、描画、入力イベント処理、
+ * ウィンドウのドラッグ移動などを担当します。
+ */
 class CSoftwareKeyboardDlg : public CDialogEx
 {
-    DECLARE_DYNAMIC(CSoftwareKeyboardDlg)
+	DECLARE_DYNAMIC(CSoftwareKeyboardDlg)
 
 public:
-    // コンストラクタで入力対象のエディットコントロールを受け取る
-    CSoftwareKeyboardDlg(CEdit *pTargetEdit, CWnd *pParent = nullptr);
-    virtual ~CSoftwareKeyboardDlg();
+	/**
+	 * @brief コンストラクタ
+	 * @param[in] pTargetEdit キー入力の送信先となるエディットコントロールへのポインタ
+	 * @param[in] pParent 親ウィンドウへのポインタ
+	 */
+	CSoftwareKeyboardDlg(CEdit *pTargetEdit, CWnd *pParent = nullptr);
+	
+	/**
+	 * @brief デストラクタ
+	 */
+	virtual ~CSoftwareKeyboardDlg() override;
 
-    // ダイアログ データ
-    enum
-    {
-        IDD = IDD_SW_KEYBOARD
-    };
+	/// @brief ダイアログ テンプレートのリソースID
+	enum
+	{
+		IDD = IDD_SW_KEYBOARD
+	};
 
-    // 状態取得用public関数
-    bool IsShiftOn() const { return m_bShiftOn; }
-    bool IsCapsLockOn() const { return m_bCapsLockOn; }
-    bool IsCtrlOn() const { return m_bCtrlOn; } // 引数をなくし、単一のフラグを返す
-    bool IsAltOn() const { return m_bAltOn; }   // 引数をなくし、単一のフラグを返す
-    bool IsFnOn() const { return m_bFnOn; }
+	// --- 状態取得用 公開関数 ---
+	bool IsShiftOn() const  noexcept { return m_bShiftOn; }     ///< ShiftキーがONかを取得します
+	bool IsCapsLockOn() const  noexcept { return m_bCapsLockOn; } ///< CapsLockキーがONかを取得します
+	bool IsCtrlOn() const  noexcept { return m_bCtrlOn; }       ///< CtrlキーがONかを取得します
+	bool IsAltOn() const  noexcept { return m_bAltOn; }        ///< AltキーがONかを取得します
+	bool IsFnOn() const  noexcept { return m_bFnOn; }         ///< FnキーがONかを取得します
 
 protected:
-    virtual void DoDataExchange(CDataExchange *pDX);
-    virtual BOOL OnInitDialog();
-    virtual void OnOK();
-    virtual void OnCancel();
+	/**
+	 * @brief ダイアログデータエクスチェンジ (DDX) および検証 (DDV) を行います。
+	 * @param pDX データエクスチェンジオブジェクトへのポインタ
+	 */
+	virtual void DoDataExchange(CDataExchange *pDX);
+	
+	/**
+	 * @brief ダイアログの初期化時にフレームワークから呼び出されます。
+	 * @details コントロールの動的生成やメンバ変数の初期化を行います。
+	 * @return 処理が成功し、フォーカスを設定した場合はTRUE。
+	 */
+	virtual BOOL OnInitDialog() override;
 
-    // メンバ変数
-    CEdit *m_pTargetEdit; // 入力対象のエディット
-    std::vector<CKeyButton *> m_KeyButtons;
+	/**
+	 * @brief Enterキーによるダイアログ終了を無効化するためにオーバーライドします。
+	 */
+	virtual void OnOK() override;
 
-    // 状態保持キーのフラグ
-    bool m_bShiftOn;
-    bool m_bCapsLockOn;
-    bool m_bCtrlOn; // 左右の区別をなくす
-    bool m_bAltOn;  // 左右の区別をなくす
-    bool m_bFnOn;
+	/**
+	 * @brief Escapeキーによるダイアログ終了を無効化するためにオーバーライドします。
+	 */
+	virtual void OnCancel() override;
 
-    // ダイアログ移動用
-    bool m_bDragging;
-    CPoint m_ptMouseOffset;
+	// --- メンバ変数 ---
+	CEdit *m_pTargetEdit; ///< キー入力の送信先となるエディットコントロール
+	std::vector<CKeyButton *> m_KeyButtons; ///< 動的に生成したキーボタンのポインタを保持するコンテナ
 
-    // カスタム描画領域
-    CRect m_rcTitleBar;
-    CRect m_rcCloseBtn;
+	// --- 状態保持キーのフラグ ---
+	bool m_bShiftOn;    ///< Shiftキーのトグル状態 (true: ON)
+	bool m_bCapsLockOn; ///< CapsLockキーのトグル状態 (true: ON)
+	bool m_bCtrlOn;     ///< Ctrlキーのトグル状態 (true: ON)
+	bool m_bAltOn;      ///< Altキーのトグル状態 (true: ON)
+	bool m_bFnOn;       ///< Fnキーのトグル状態 (true: ON)
 
-    // ヘルパー関数
-    void HandleKeyPress(const KEY_INFO *pKeyInfo);
-    void SendChar(TCHAR ch);
-    void SendKey(BYTE vk);
-    void UpdateAllKeys();
+	// --- ダイアログ移動用 ---
+	bool m_bDragging;         ///< ウィンドウをドラッグ中かどうかのフラグ
+	CPoint m_ptMouseOffset;   ///< ドラッグ開始時のマウスカーソルオフセット
 
-    afx_msg void OnPaint();
-    afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
-    afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
-    afx_msg void OnMouseMove(UINT nFlags, CPoint point);
-    afx_msg void OnKeyClick(UINT nID);
-    DECLARE_MESSAGE_MAP()
+	// --- カスタム描画領域 ---
+	CRect m_rcTitleBar; ///< ドラッグ可能なタイトルバー領域
+	CRect m_rcCloseBtn; ///< 閉じるボタンの領域
+
+	// --- ヘルパー関数 ---
+	void HandleKeyPress(const KEY_INFO *pKeyInfo);
+	void SendChar(TCHAR ch);
+	void SendKey(BYTE vk);
+	void UpdateAllKeys();
+
+	// --- メッセージハンドラ ---
+	afx_msg void OnPaint();
+	afx_msg void OnLButtonDown(UINT nFlags, CPoint point);
+	afx_msg void OnLButtonUp(UINT nFlags, CPoint point);
+	afx_msg void OnMouseMove(UINT nFlags, CPoint point);
+	afx_msg void OnKeyClick(UINT nID);
+	DECLARE_MESSAGE_MAP()
 };

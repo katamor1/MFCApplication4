@@ -13,8 +13,8 @@ class CMyDialog : public CDialogEx
     static const int TOTAL_GRIDS = (GRID_ARRAY_ROWS * GRID_ARRAY_COLS);
 
 public:
-    CMyDialog(CWnd *pParent = nullptr); // 標準コンストラクター
-    virtual ~CMyDialog();
+    explicit CMyDialog(CWnd *pParent = nullptr); // 標準コンストラクター
+    virtual ~CMyDialog() override;
 
     // ダイアログ データ
     enum
@@ -35,7 +35,7 @@ protected:
     // スクロール情報を更新するためのヘルパー関数
     void UpdateScrollInfo();
 
-    virtual void DoDataExchange(CDataExchange *pDX); // DDX/DDV サポート
+    virtual void DoDataExchange(CDataExchange *pDX) override; // DDX/DDV サポート
     void ActivateGrid(CGridCtrl *pGridToActivate);
     void EnsureGridVisible(CGridCtrl *pGrid); // 自動スクロール用ヘルパー関数
     afx_msg LRESULT OnGridCellChanged(WPARAM wParam, LPARAM lParam);
@@ -43,11 +43,11 @@ protected:
     afx_msg void OnVScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg BOOL OnMouseWheel(UINT nFlags, short zDelta, CPoint pt);
-    virtual BOOL OnInitDialog();
-    virtual BOOL PreTranslateMessage(MSG *pMsg);
+    virtual BOOL OnInitDialog() override;
+    virtual BOOL PreTranslateMessage(MSG *pMsg) override;
     afx_msg LRESULT OnGridActivated(WPARAM wParam, LPARAM lParam);
     afx_msg LRESULT OnGridNavBoundaryHit(WPARAM wParam, LPARAM lParam);
-    virtual void OnOK();
+    virtual void OnOK() override;
 
     DECLARE_MESSAGE_MAP()
 };

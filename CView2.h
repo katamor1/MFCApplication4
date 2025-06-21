@@ -1,34 +1,82 @@
-﻿#pragma once
+﻿/**
+ * @file CView2.h
+ * @brief CViewを派生したカスタムビュークラスの宣言
+ * @author C++/MFCコーディング (AI)
+ * @date 2025/06/22
+ * @details このビューは、メインダイアログに子ウィンドウとして配置され、
+ * 他のビュー(CView1)の上に重ねて表示されることを想定しています。
+ */
+#pragma once
 
 #include "CenterEdit.h"
 
-// CView2 ビュー
-
+/**
+ * @class CView2
+ * @brief CView1の上に重ねて表示されるカスタムビュー
+ * @details CViewを継承し、内部にCCenterEditコントロールを動的に配置します。
+ * ウィンドウ作成時にスタイルを調整し、兄弟ウィンドウとの描画の重なり方を制御します。
+ */
 class CView2 : public CView
 {
 protected:
-	DECLARE_DYNCREATE(CView2)
-	CCenterEdit *m_editCustom1 = nullptr;
-	CCenterEdit *m_editCustom2 = nullptr;
+    /**
+     * @brief DYNCREATEマクロ
+     * @details フレームワークがこのクラスのインスタンスを動的に生成できるようにします。
+     */
+    DECLARE_DYNCREATE(CView2)
+    
+    /// @brief ビュー内に配置されるカスタムエディットコントロールへのポインタ1
+    CCenterEdit *m_editCustom1 = nullptr;
+    /// @brief ビュー内に配置されるカスタムエディットコントロールへのポインタ2
+    CCenterEdit *m_editCustom2 = nullptr;
 
-	// 属性
+    // 属性
 public:
-	// 操作
+    // 操作
 public:
-	// オーバーライド
+    // オーバーライド
 public:
-	virtual void OnDraw(CDC *pDC);
-	virtual BOOL PreCreateWindow(CREATESTRUCT &cs);
+    /**
+     * @brief ビューの描画処理を行います (WM_PAINT)。
+     * @details この実装では、初回描画時に子コントロールであるCCenterEditを動的に生成・配置します。
+     * @param[in] pDC 描画に使用するデバイスコンテキストへのポインタ。
+     */
+    virtual void OnDraw(CDC *pDC) override;
+    
+    /**
+     * @brief ウィンドウが作成される直前にフレームワークから呼び出されます。
+     * @details ウィンドウのスタイル(CREATESTRUCT)を変更するためにオーバーライドされます。
+     * @param[in,out] cs ウィンドウの作成パラメータを保持するCREATESTRUCT構造体。
+     * @return ウィンドウ作成を続行する場合はTRUE、中止する場合はFALSE。
+     */
+    virtual BOOL PreCreateWindow(CREATESTRUCT &cs) override;
 
-	// 実装
+    // 実装
 public:
-	CView2() noexcept {};
-	virtual ~CView2() = default;
+    /**
+     * @brief デフォルトコンストラクタ
+     */
+    CView2() noexcept = default;
+
+    /**
+     * @brief デストラクタ
+     * @details 動的に確保したコントロールは、親ウィンドウが破棄される際に自動的にクリーンアップされます。
+     */
+    virtual ~CView2() noexcept override = default;
 #ifdef _DEBUG
-	virtual void AssertValid() const;
-	virtual void Dump(CDumpContext &dc) const;
+    /**
+     * @brief オブジェクトの有効性を診断します (デバッグビルドのみ)。
+     */
+    virtual void AssertValid() const override;
+
+    /**
+     * @brief オブジェクトの状態をダンプします (デバッグビルドのみ)。
+     * @param[in,out] dc ダンプ先のデバイスコンテキスト。
+     */
+    virtual void Dump(CDumpContext &dc) const override;
 #endif
 
 protected:
-	DECLARE_MESSAGE_MAP()
+    /// @brief メッセージマップを宣言します。
+    DECLARE_MESSAGE_MAP()
 };
