@@ -7,9 +7,9 @@
 #include "pch.h"
 #include "GridCtrl.h"
 
-// --- 定数定義 ---
+ // --- 定数定義 ---
 
-// 色の定義
+ // 色の定義
 const COLORREF CLR_WHITE = RGB(255, 255, 255);       ///< 白色
 const COLORREF CLR_GRAY = RGB(240, 240, 240);       ///< 編集不可セルのデフォルト背景色 (灰色)
 const COLORREF CLR_BLUE_BG = RGB(0, 0, 230);        ///< 選択状態のセルの背景色 (青色)
@@ -23,16 +23,18 @@ const COLORREF CLR_BLACK = RGB(0, 0, 0);          ///< デフォルトの文字�
 
 /**
  * @brief CGridCtrlクラスのコンストラクタ
+ * @details 各メンバ変数を初期値に設定します。
  */
-CGridCtrl::CGridCtrl()
+CGridCtrl::CGridCtrl(int nMaxVisibleRows)
     : m_nRows(0), m_nCols(0),
-      m_nRowHeight(22),
-      m_defaultBgColor(CLR_GRAY),
-      m_selectedCell(-1, -1),
-      m_bIsActive(FALSE),
-      m_pEdit(nullptr),
-      m_nTopRow(0)
+    m_nRowHeight(22),
+    m_defaultBgColor(CLR_GRAY),
+    m_selectedCell(-1, -1),
+    m_bIsActive(FALSE),
+    m_pEdit(nullptr),
+    m_nTopRow(0)
 {
+    m_nMaxVisibleRows = nMaxVisibleRows;
 }
 
 /**
@@ -47,6 +49,7 @@ CGridCtrl::~CGridCtrl()
 
 /**
  * @brief グリッドの基本構成（行数・列数）を設定します。
+ * @details この関数は、他のプロパティ設定の前に呼び出す必要があります。
  * @param[in] nRows 設定する行数。
  * @param[in] nCols 設定する列数。
  * @return セットアップが成功した場合はTRUE。
@@ -114,11 +117,11 @@ void CGridCtrl::SetDefaultBgColor(COLORREF color)
 
 /**
  * @brief 指定したセルにテキストを設定します。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
- * @param strText 設定するテキスト
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
+ * @param[in] strText 設定するテキスト
  */
-void CGridCtrl::SetCellText(int nRow, int nCol, const CString &strText)
+void CGridCtrl::SetCellText(int nRow, int nCol, const CString& strText)
 {
     int index = GetCellIndex(nRow, nCol);
     if (index != -1)
@@ -127,8 +130,8 @@ void CGridCtrl::SetCellText(int nRow, int nCol, const CString &strText)
 
 /**
  * @brief 指定したセルのテキストを取得します。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
  * @return セルのテキスト
  */
 CString CGridCtrl::GetCellText(int nRow, int nCol) const
@@ -140,9 +143,9 @@ CString CGridCtrl::GetCellText(int nRow, int nCol) const
 /**
  * @brief 指定したセルの編集可否を設定します。
  * @details 編集可能に設定すると、デフォルトで背景色が白になります。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
- * @param bEditable 編集可能にする場合はTRUE
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
+ * @param[in] bEditable 編集可能にする場合はTRUE
  */
 void CGridCtrl::SetCellEditable(int nRow, int nCol, BOOL bEditable)
 {
@@ -157,8 +160,8 @@ void CGridCtrl::SetCellEditable(int nRow, int nCol, BOOL bEditable)
 
 /**
  * @brief 指定したセルが編集可能かを取得します。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
  * @return 編集可能な場合はTRUE
  */
 BOOL CGridCtrl::IsCellEditable(int nRow, int nCol) const
@@ -169,9 +172,9 @@ BOOL CGridCtrl::IsCellEditable(int nRow, int nCol) const
 
 /**
  * @brief 指定したセルの背景色を設定します。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
- * @param color 設定する色
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
+ * @param[in] color 設定する色
  */
 void CGridCtrl::SetCellBgColor(int nRow, int nCol, COLORREF color)
 {
@@ -198,7 +201,7 @@ END_MESSAGE_MAP()
 /**
  * @brief ウィンドウ作成時に呼び出されます (WM_CREATE)。
  * @details ウィンドウハンドルが有効になるこのタイミングで、スクロールバーの初期化を行うのが最適です。
- * @param lpCreateStruct 作成情報
+ * @param[in] lpCreateStruct 作成情報
  * @return 成功なら0、失敗なら-1
  */
 int CGridCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
@@ -212,12 +215,12 @@ int CGridCtrl::OnCreate(LPCREATESTRUCT lpCreateStruct)
 
 /**
  * @brief コントロールのウィンドウを生成・初期化します。
- * @param rect 親ウィンドウのクライアント座標におけるコントロールの位置とサイズ。
- * @param pParentWnd 親ウィンドウへのポインタ。
- * @param nID コントロールID。
- * @return 成功した場合は0以外、失敗した場合は0。
+ * @param[in] rect 親ウィンドウのクライアント座標におけるコントロールの位置とサイズ。
+ * @param[in] pParentWnd 親ウィンドウへのポインタ。
+ * @param[in] nID コントロールID。
+ * @return 成功した場合はTRUE、失敗した場合はFALSE。
  */
-BOOL CGridCtrl::Create(const RECT &rect, CWnd *pParentWnd, UINT nID)
+BOOL CGridCtrl::Create(const RECT& rect, CWnd* pParentWnd, UINT nID)
 {
     // このコントロール用のウィンドウクラスを登録
     WNDCLASS wndcls;
@@ -268,16 +271,16 @@ void CGridCtrl::OnPaint()
     memDC.CreateCompatibleDC(&dc);
     CBitmap bmp;
     bmp.CreateCompatibleBitmap(&dc, clientRect.Width(), clientRect.Height());
-    CBitmap *pOldBmp = memDC.SelectObject(&bmp);
+    CBitmap* pOldBmp = memDC.SelectObject(&bmp);
 
     memDC.FillSolidRect(clientRect, CLR_WHITE);
 
     CPen pen(PS_SOLID, 1, CLR_BORDER);
-    CPen *pOldPen = memDC.SelectObject(&pen);
+    CPen* pOldPen = memDC.SelectObject(&pen);
 
     // 表示する行の範囲を計算 (スクロール位置を考慮)
     int nStartRow = m_nTopRow;
-    int nEndRow = min(m_nRows, m_nTopRow + MAX_VISIBLE_ROWS);
+    int nEndRow = min(m_nRows, m_nTopRow + m_nMaxVisibleRows);
 
     // 表示範囲のセルを描画
     for (int row = nStartRow; row < nEndRow; ++row)
@@ -288,7 +291,7 @@ void CGridCtrl::OnPaint()
             int index = GetCellIndex(row, col);
             if (index == -1) continue;
 
-            CellInfo &cell = m_cells[index];
+            CellInfo& cell = m_cells[index];
             COLORREF bgColor = cell.m_bgColor;
             COLORREF textColor = CLR_BLACK;
 
@@ -348,8 +351,8 @@ void CGridCtrl::OnPaint()
     if (m_bIsActive)
     {
         CPen borderPen(PS_SOLID, 3, RGB(0, 0, 255));
-        CBrush *pOldBrush = (CBrush *)memDC.SelectStockObject(NULL_BRUSH);
-        CPen *pOldPenBorder = memDC.SelectObject(&borderPen);
+        CBrush* pOldBrush = (CBrush*)memDC.SelectStockObject(NULL_BRUSH);
+        CPen* pOldPenBorder = memDC.SelectObject(&borderPen);
         CRect rcClient;
         GetClientRect(&rcClient);
         rcClient.DeflateRect(1, 1);
@@ -357,7 +360,7 @@ void CGridCtrl::OnPaint()
         memDC.SelectObject(pOldBrush);
         memDC.SelectObject(pOldPenBorder);
     }
-    
+
     // メモリDCから画面DCへ一括転送
     dc.BitBlt(0, 0, clientRect.Width(), clientRect.Height(), &memDC, 0, 0, SRCCOPY);
     memDC.SelectObject(pOldBmp);
@@ -366,8 +369,8 @@ void CGridCtrl::OnPaint()
 /**
  * @brief マウス左ボタン押下イベント(WM_LBUTTONDOWN)を処理します。
  * @details クリックされたセルを選択状態にし、編集可能であれば編集モードを開始します。
- * @param nFlags 修飾キーの状態
- * @param point マウスカーソルのクライアント座標
+ * @param[in] nFlags 修飾キーの状態
+ * @param[in] point マウスカーソルのクライアント座標
  */
 void CGridCtrl::OnLButtonDown(UINT nFlags, CPoint point)
 {
@@ -397,7 +400,7 @@ void CGridCtrl::OnLButtonDown(UINT nFlags, CPoint point)
     {
         DestroyInPlaceEdit(TRUE); // 前の編集を確定
         m_selectedCell = cell;
-        
+
         // 親ウィンドウに行選択の変更を通知 (WM_NOTIFY)
         NM_GRIDVIEW nm;
         nm.hdr.hwndFrom = GetSafeHwnd();
@@ -406,15 +409,15 @@ void CGridCtrl::OnLButtonDown(UINT nFlags, CPoint point)
         nm.iRow = m_selectedCell.y;
         nm.iCol = m_selectedCell.x;
         GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
-        
+
         Invalidate();
     }
 }
 
 /**
  * @brief ダイアログナビゲーションのためのキー種別を返します (WM_GETDLGCODE)。
- * @return DLGC_WANTARROWS | DLGC_WANTCHARS
  * @details カーソルキーや文字キーをダイアログに奪われず、自前で処理するために必要です。
+ * @return DLGC_WANTARROWS | DLGC_WANTCHARS
  */
 UINT CGridCtrl::OnGetDlgCode()
 {
@@ -425,9 +428,9 @@ UINT CGridCtrl::OnGetDlgCode()
  * @brief キー押下イベント(WM_KEYDOWN)を処理します。
  * @details カーソルキーによるセル移動、F2/Enterキーによる編集開始などを実装します。
  * グリッドの端に到達した場合は、親ウィンドウに通知します。
- * @param nChar 仮想キーコード
- * @param nRepCnt キーのリピート回数
- * @param nFlags 修飾キーの状態
+ * @param[in] nChar 仮想キーコード
+ * @param[in] nRepCnt キーのリピート回数
+ * @param[in] nFlags 修飾キーの状態
  */
 void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 {
@@ -492,7 +495,7 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
     case VK_NEXT:  // Page Down
     {
         if (m_selectedCell.x == -1) break;
-        int nStep = (nChar == VK_PRIOR) ? -MAX_VISIBLE_ROWS : MAX_VISIBLE_ROWS;
+        int nStep = (nChar == VK_PRIOR) ? -m_nMaxVisibleRows : m_nMaxVisibleRows;
         int nDirection = (nChar == VK_PRIOR) ? -1 : 1;
 
         // 1. まず目標となる行を計算
@@ -566,8 +569,8 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
             GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
 
             // 新しく選択されたセルが表示されるようにスクロール
-			EnsureCellVisible(m_selectedCell.y, m_selectedCell.x);
-        	Invalidate();
+            EnsureCellVisible(m_selectedCell.y, m_selectedCell.x);
+            Invalidate();
         }
         break;
     }
@@ -583,26 +586,26 @@ void CGridCtrl::OnKeyDown(UINT nChar, UINT nRepCnt, UINT nFlags)
 
 /**
  * @brief 指定したセルが表示されるように、必要であればグリッドをスクロールします。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
  */
 void CGridCtrl::EnsureCellVisible(int nRow, int nCol)
 {
-    if (m_nRows <= MAX_VISIBLE_ROWS) return;
+    if (m_nRows <= m_nMaxVisibleRows) return;
 
     int newTopRow = m_nTopRow;
     if (nRow < m_nTopRow)
     {
         newTopRow = nRow;
     }
-    else if (nRow >= m_nTopRow + MAX_VISIBLE_ROWS)
+    else if (nRow >= m_nTopRow + m_nMaxVisibleRows)
     {
-        newTopRow = nRow - MAX_VISIBLE_ROWS + 1;
+        newTopRow = nRow - m_nMaxVisibleRows + 1;
     }
 
     if (newTopRow != m_nTopRow)
     {
-        int maxScrollPos = m_nRows - MAX_VISIBLE_ROWS;
+        int maxScrollPos = m_nRows - m_nMaxVisibleRows;
         newTopRow = max(0, min(newTopRow, maxScrollPos));
         m_nTopRow = newTopRow;
         SetScrollPos(SB_VERT, m_nTopRow, TRUE);
@@ -614,9 +617,9 @@ void CGridCtrl::EnsureCellVisible(int nRow, int nCol)
 /**
  * @brief フォーカスを受け取った際のイベントハンドラ (WM_SETFOCUS)。
  * @details まだ何も選択されていなければ、最初の編集可能セルを選択します。
- * @param pOldWnd フォーカスを失ったウィンドウ
+ * @param[in] pOldWnd フォーカスを失ったウィンドウ
  */
-void CGridCtrl::OnSetFocus(CWnd *pOldWnd)
+void CGridCtrl::OnSetFocus(CWnd* pOldWnd)
 {
     CWnd::OnSetFocus(pOldWnd);
     if (m_selectedCell.x == -1)
@@ -629,14 +632,19 @@ void CGridCtrl::OnSetFocus(CWnd *pOldWnd)
 /**
  * @brief フォーカスを失った際のイベントハンドラ (WM_KILLFOCUS)。
  * @details インプレイス編集中のエディットコントロールがあれば破棄します。
- * @param pNewWnd 新しくフォーカスを受け取るウィンドウ
+ * @param[in] pNewWnd 新しくフォーカスを受け取るウィンドウ
  */
-void CGridCtrl::OnKillFocus(CWnd *pNewWnd)
+void CGridCtrl::OnKillFocus(CWnd* pNewWnd)
 {
     CWnd::OnKillFocus(pNewWnd);
-    if (pNewWnd != nullptr && m_pEdit != nullptr && pNewWnd->GetSafeHwnd() == m_pEdit->GetSafeHwnd())
+    if (m_pEdit != nullptr && pNewWnd != nullptr)
     {
-        return; // フォーカスがインプレイスエディット自身に移る場合は何もしない
+        HWND hEdit = m_pEdit->GetSafeHwnd();
+        HWND hNew = pNewWnd->GetSafeHwnd();
+        if (hEdit != nullptr && hNew == hEdit)
+        {
+            return; // フォーカスがインプレイスエディット自身に移る場合は何もしない
+        }
     }
     DestroyInPlaceEdit(TRUE);
     Invalidate();
@@ -644,13 +652,13 @@ void CGridCtrl::OnKillFocus(CWnd *pNewWnd)
 
 /**
  * @brief 論理的な行・列インデックスから、物理的な描画矩形を計算します。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
  * @return セルの描画矩形 (クライアント座標)
  */
 CRect CGridCtrl::GetCellRect(int nRow, int nCol) const
 {
-    if (nRow < m_nTopRow || nRow >= m_nTopRow + MAX_VISIBLE_ROWS)
+    if (nRow < m_nTopRow || nRow >= m_nTopRow + m_nMaxVisibleRows)
     {
         return CRect(0, 0, 0, 0); // 画面外
     }
@@ -664,10 +672,10 @@ CRect CGridCtrl::GetCellRect(int nRow, int nCol) const
 
 /**
  * @brief 物理的な座標点から、それがどの論理セルに該当するかを計算します。
- * @param point クライアント座標
+ * @param[in] point クライアント座標
  * @return セルの論理インデックス (列, 行)。見つからない場合は (-1, -1)。
  */
-CPoint CGridCtrl::HitTest(const CPoint &point) const
+CPoint CGridCtrl::HitTest(const CPoint& point) const
 {
     int row = (point.y / m_nRowHeight) + m_nTopRow;
     if (row < 0 || row >= m_nRows) return CPoint(-1, -1);
@@ -686,13 +694,13 @@ CPoint CGridCtrl::HitTest(const CPoint &point) const
 
 /**
  * @brief グリッドの全コンテンツを表示するために必要な高さを返します。
- * @details MAX_VISIBLE_ROWSまでの高さを返します。
+ * @details m_nMaxVisibleRowsまでの高さを返します。
  * @return 必要な高さ(ピクセル)
  */
 int CGridCtrl::GetRequiredHeight() const
 {
     if (m_nRows == 0) return 0;
-    int nVisibleRows = min(m_nRows, MAX_VISIBLE_ROWS);
+    int nVisibleRows = min(m_nRows, m_nMaxVisibleRows);
     return nVisibleRows * m_nRowHeight;
 }
 
@@ -714,8 +722,8 @@ int CGridCtrl::GetRequiredWidth() const
 
 /**
  * @brief 論理的な行・列インデックスから、1次元配列m_cellsのインデックスを計算します。
- * @param nRow 行インデックス (0始まり)
- * @param nCol 列インデックス (0始まり)
+ * @param[in] nRow 行インデックス (0始まり)
+ * @param[in] nCol 列インデックス (0始まり)
  * @return 配列のインデックス。範囲外の場合は-1。
  */
 int CGridCtrl::GetCellIndex(int nRow, int nCol) const
@@ -739,7 +747,7 @@ void CGridCtrl::CreateInPlaceEdit()
     rect.DeflateRect(1, 1);
 
     m_pEdit = new CInPlaceEdit(this, m_selectedCell, GetCellText(m_selectedCell.y, m_selectedCell.x));
-    
+
     if (!m_pEdit->Create(WS_CHILD | WS_VISIBLE | WS_BORDER | ES_AUTOHSCROLL, rect, this, 1))
     {
         TRACE(_T("Failed to create InPlaceEdit control. Error: %d\n"), GetLastError());
@@ -756,7 +764,7 @@ void CGridCtrl::CreateInPlaceEdit()
 
 /**
  * @brief インプレイス編集用のエディットコントロールを破棄します。
- * @param bUpdate TRUEの場合、編集内容をセルに反映します。FALSEの場合は破棄します。
+ * @param[in] bUpdate TRUEの場合、編集内容をセルに反映します。FALSEの場合は反映せずに破棄します。
  */
 void CGridCtrl::DestroyInPlaceEdit(BOOL bUpdate)
 {
@@ -783,6 +791,11 @@ void CGridCtrl::DestroyInPlaceEdit(BOOL bUpdate)
     Invalidate();
 }
 
+/**
+ * @brief カーソルキー入力に応じて、編集可能なセル間を選択移動します。
+ * @param[in] dx 水平方向の移動量 (-1:左, 1:右, 0:移動なし)
+ * @param[in] dy 垂直方向の移動量 (-1:上, 1:下, 0:移動なし)
+ */
 void CGridCtrl::MoveSelection(int dx, int dy)
 {
     if (m_pEdit)
@@ -849,10 +862,10 @@ void CGridCtrl::MoveSelection(int dx, int dy)
 }
 
 /**
- * @brief アクティブ/非アクティブ状態を設定します。
+ * @brief このグリッドコントロールのアクティブ/非アクティブ状態を設定します。
  * @details アクティブになると外枠が青くなり、フォーカスを受け取れるようになります。
  * 非アクティブになると選択状態が解除されます。
- * @param bActive アクティブにする場合はTRUE
+ * @param[in] bActive アクティブにする場合はTRUE
  */
 void CGridCtrl::SetActive(BOOL bActive)
 {
@@ -864,7 +877,8 @@ void CGridCtrl::SetActive(BOOL bActive)
         // アクティブになった際、何も選択されていなければ最初の編集可能セルを選択
         if (m_selectedCell.x == -1)
         {
-            for (int r = 0; r < m_nRows; ++r) {
+            bool found = false;
+            for (int r = 0; r < m_nRows && !found; ++r) {
                 for (int c = 0; c < m_nCols; ++c) {
                     if (IsCellEditable(r, c)) {
                         m_selectedCell = CPoint(c, r);
@@ -875,11 +889,11 @@ void CGridCtrl::SetActive(BOOL bActive)
                         nm.iRow = m_selectedCell.y;
                         nm.iCol = m_selectedCell.x;
                         GetParent()->SendMessage(WM_NOTIFY, GetDlgCtrlID(), (LPARAM)&nm);
-                        goto end_find_first;
+                        found = true;
+                        break;
                     }
                 }
             }
-        end_find_first:;
         }
     }
     else
@@ -899,14 +913,14 @@ void CGridCtrl::UpdateScrollbar()
 {
     if (GetSafeHwnd() == nullptr) return;
 
-    if (m_nRows > MAX_VISIBLE_ROWS)
+    if (m_nRows > m_nMaxVisibleRows)
     {
         SCROLLINFO si;
         si.cbSize = sizeof(SCROLLINFO);
         si.fMask = SIF_RANGE | SIF_PAGE | SIF_POS;
         si.nMin = 0;
         si.nMax = m_nRows - 1;
-        si.nPage = MAX_VISIBLE_ROWS;
+        si.nPage = m_nMaxVisibleRows;
         si.nPos = m_nTopRow;
         SetScrollInfo(SB_VERT, &si, TRUE);
         ShowScrollBar(SB_VERT, TRUE);
@@ -921,11 +935,11 @@ void CGridCtrl::UpdateScrollbar()
 
 /**
  * @brief 垂直スクロールイベント(WM_VSCROLL)を処理します。
- * @param nSBCode スクロールバーのコード
- * @param nPos スクロールボックスの位置
- * @param pScrollBar スクロールバーコントロールへのポインタ
+ * @param[in] nSBCode スクロールバーのコード
+ * @param[in] nPos スクロールボックスの位置
+ * @param[in] pScrollBar スクロールバーコントロールへのポインタ
  */
-void CGridCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
+void CGridCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
     int newTopRow = m_nTopRow;
 
@@ -933,14 +947,14 @@ void CGridCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
     {
     case SB_LINEUP: newTopRow--; break;
     case SB_LINEDOWN: newTopRow++; break;
-    case SB_PAGEUP: newTopRow -= MAX_VISIBLE_ROWS; break;
-    case SB_PAGEDOWN: newTopRow += MAX_VISIBLE_ROWS; break;
+    case SB_PAGEUP: newTopRow -= m_nMaxVisibleRows; break;
+    case SB_PAGEDOWN: newTopRow += m_nMaxVisibleRows; break;
     case SB_THUMBTRACK: newTopRow = nPos; break;
     }
 
-    int maxScrollPos = m_nRows - MAX_VISIBLE_ROWS;
+    int maxScrollPos = m_nRows - m_nMaxVisibleRows;
     newTopRow = max(0, min(newTopRow, maxScrollPos));
-    
+
     if (newTopRow == m_nTopRow) return;
 
     m_nTopRow = newTopRow;
@@ -953,14 +967,14 @@ void CGridCtrl::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar *pScrollBar)
 /**
  * @brief マウスホイールイベント(WM_MOUSEWHEEL)を処理します。
  * @details マウスホイールの回転に応じて垂直スクロールを行います。
- * @param nFlags 修飾キーの状態
- * @param zDelta ホイールの回転量
- * @param pt カーソルの位置
+ * @param[in] nFlags 修飾キーの状態
+ * @param[in] zDelta ホイールの回転量
+ * @param[in] pt カーソルの位置
  * @return メッセージを処理した場合はTRUE
  */
 BOOL CGridCtrl::OnMouseWheel(UINT nFlags, short zDelta, CPoint pt)
 {
-    if (m_nRows > MAX_VISIBLE_ROWS)
+    if (m_nRows > m_nMaxVisibleRows)
     {
         if (zDelta > 0) OnVScroll(SB_LINEUP, 0, nullptr);
         else OnVScroll(SB_LINEDOWN, 0, nullptr);
