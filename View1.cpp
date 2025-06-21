@@ -1,8 +1,6 @@
 ﻿/**
  * @file View1.cpp
  * @brief CViewを派生したプライマリビューのクラス実装
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "MFCApplication4.h"

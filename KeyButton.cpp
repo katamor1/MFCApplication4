@@ -1,8 +1,6 @@
 ﻿/**
  * @file KeyButton.cpp
  * @brief ソフトウェアキーボードの個別キーを描画するカスタムボタンクラスの実装
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "KeyButton.h"

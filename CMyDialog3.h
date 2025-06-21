@@ -1,8 +1,6 @@
 ﻿/**
  * @file CMyDialog3.h
  * @brief CGridCtrlと機能ボタンを連携させるダイアログのクラス宣言
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #pragma once
 #include "afxdialogex.h"

@@ -1,8 +1,6 @@
 ﻿/**
  * @file CMyEdit.cpp
  * @brief ソフトウェアキーボードを起動するカスタムエディットコントロールのクラス実装
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "CMyEdit.h"

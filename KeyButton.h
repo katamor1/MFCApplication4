@@ -1,8 +1,6 @@
 ﻿/**
  * @file KeyButton.h
  * @brief ソフトウェアキーボードの個別キーを描画するカスタムボタンクラスの宣言
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #pragma once
 

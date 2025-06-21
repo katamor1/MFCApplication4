@@ -1,8 +1,6 @@
 ﻿/**
  * @file MFCApplication4.cpp
  * @brief アプリケーションクラスのクラス動作を定義する実装ファイル
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "framework.h"

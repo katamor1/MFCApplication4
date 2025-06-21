@@ -1,8 +1,6 @@
 ﻿/**
  * @file InPlaceEdit.cpp
  * @brief CGridCtrlのセル内編集（インプレイス編集）に使われるCEdit派生クラスの実装
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "InPlaceEdit.h"

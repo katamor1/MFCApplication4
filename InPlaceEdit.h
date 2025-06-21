@@ -1,8 +1,6 @@
 ﻿/**
  * @file InPlaceEdit.h
  * @brief CGridCtrlのセル内編集（インプレイス編集）に使われるCEdit派生クラスの宣言
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  * @details このファイルは、CGridCtrlのセル上で直接テキスト編集を行うための
  * CEditから派生した CInPlaceEdit クラスを宣言します。
  */

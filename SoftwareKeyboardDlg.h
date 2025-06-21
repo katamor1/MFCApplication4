@@ -1,8 +1,6 @@
 ﻿/**
  * @file SoftwareKeyboardDlg.h
  * @brief ソフトウェアキーボードダイアログのクラス宣言
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  * @details このファイルは、マウスで文字入力を行うためのソフトウェアキーボードの
  * メインダイアログクラス CSoftwareKeyboardDlg の宣言を含みます。
  */

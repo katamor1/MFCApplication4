@@ -1,8 +1,6 @@
 ﻿/**
  * @file CMyDialog3.cpp
  * @brief CGridCtrlと機能ボタンを連携させるダイアログのクラス実装
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "resource.h"

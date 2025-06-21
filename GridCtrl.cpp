@@ -1,8 +1,6 @@
 ﻿/**
  * @file GridCtrl.cpp
  * @brief 汎用的な表形式（グリッド）カスタムコントロールのクラス実装
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "GridCtrl.h"

@@ -1,8 +1,6 @@
 ﻿/**
  * @file MFCApplication4.h
  * @brief アプリケーションクラスのメインヘッダーファイル
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  * @details このファイルは、MFCアプリケーション全体の動作を管理する
  * CMFCApplication4App クラスを宣言します。
  */

@@ -1,8 +1,6 @@
 ﻿/**
  * @file MFCApplication4Dlg.cpp
  * @brief メインダイアログクラスの実装ファイル
- * @author C++/MFCコーディング (AI)
- * @date 2025/06/22
  */
 #include "pch.h"
 #include "framework.h"
